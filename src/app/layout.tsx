@@ -1,0 +1,47 @@
+import type { Metadata } from 'next'
+import './globals.css'
+import { CartProvider } from '@/contexts/CartContext'
+import { ToastProvider } from '@/components/ToastProvider'
+
+export const metadata: Metadata = {
+  title: 'Cardápio de Natal ThinkFit — Bolos sem glúten, zero lactose e low sugar',
+  description: 'Encomende bolos e doces natalinos autorais da Chef Juliana Andrade. Produção limitada — sabores sofisticados, low sugar e sem glúten.',
+  keywords: ['natal', 'bolos', 'sem glúten', 'zero lactose', 'low sugar', 'thinkfit', 'saudável'],
+  authors: [{ name: 'ThinkFit' }],
+  openGraph: {
+    title: 'Cardápio de Natal ThinkFit 2025',
+    description: 'Sobremesas natalinas autorais — sem glúten, zero lactose e low sugar',
+    type: 'website',
+    locale: 'pt_BR',
+    images: [
+      {
+        url: '/images/hero.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Cardápio de Natal ThinkFit',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Cardápio de Natal ThinkFit 2025',
+    description: 'Sobremesas natalinas autorais — sem glúten, zero lactose e low sugar',
+    images: ['/images/hero.jpg'],
+  },
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="pt-BR">
+      <body>
+        <ToastProvider>
+          <CartProvider>{children}</CartProvider>
+        </ToastProvider>
+      </body>
+    </html>
+  )
+}

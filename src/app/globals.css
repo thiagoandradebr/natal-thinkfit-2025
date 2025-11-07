@@ -1,0 +1,540 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Lato:wght@300;400;500&display=swap');
+
+@layer base {
+  body {
+    @apply bg-[#F8F6F3] text-[#6D4C41] font-body;
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.7;
+  }
+
+  /* Sistema Tipográfico Consistente */
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px;
+    font-weight: 300;
+    letter-spacing: -1px;
+    line-height: 1.2;
+    color: #3E2723;
+  }
+  
+  h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 300;
+    letter-spacing: -0.5px;
+    line-height: 1.3;
+    color: #3E2723;
+  }
+  
+  h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: 0px;
+    line-height: 1.4;
+    color: #4E342E;
+  }
+  
+  /* Responsividade */
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 48px;
+    }
+    h2 {
+      font-size: 36px;
+    }
+    h3 {
+      font-size: 24px;
+    }
+  }
+}
+
+@layer utilities {
+  /* Classes Tipográficas */
+  .text-body-large {
+    font-family: 'Lato', sans-serif;
+    font-size: 16px;
+    font-weight: 300;
+    letter-spacing: 0.3px;
+    line-height: 1.7;
+  }
+  
+  .text-body {
+    font-family: 'Lato', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: 0px;
+    line-height: 1.7;
+  }
+  
+  .text-small {
+    font-family: 'Lato', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.8s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.5s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Scrollbar customizado - tema natalino */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5F1E8;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #DAA520;
+  border-radius: 6px;
+  border: 2px solid #F5F1E8;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8B4513;
+}
+
+/* Ornamentos decorativos */
+.ornament-divider {
+  position: relative;
+  text-align: center;
+  margin: 3rem 0;
+}
+
+.ornament-divider::before,
+.ornament-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 45%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #DAA520, transparent);
+}
+
+.ornament-divider::before {
+  left: 0;
+}
+
+.ornament-divider::after {
+  right: 0;
+}
+
+/* Flocos de neve sutis */
+@keyframes snowfall {
+  0% {
+    transform: translateY(-10vh) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.3;
+  }
+  90% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(110vh) translateX(100px);
+    opacity: 0;
+  }
+}
+
+.snowflake {
+  position: fixed;
+  top: -10vh;
+  z-index: 1;
+  color: #DAA520;
+  opacity: 0.2;
+  animation: snowfall linear infinite;
+  pointer-events: none;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Transições Globais de Luxo */
+* {
+  transition-duration: 400ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Microinterações Refinadas */
+button, a, input, textarea, select {
+  transition-property: opacity, transform, color, background-color, border-color;
+  transition-duration: 400ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+a:hover {
+  transition-duration: 300ms;
+}
+
+/* Progress Bar de Scroll */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #B8860B;
+  transform-origin: left;
+  z-index: 9999;
+}
+
+/* Animações de Scroll */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Placeholder customizado */
+::placeholder {
+  color: #A1887F;
+  opacity: 1;
+}
+
+/* Checkbox customizado */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+  background-color: #B8860B;
+  border-color: #B8860B;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Ornamentos Decorativos Natalinos */
+.ornament-star {
+  display: inline-block;
+  color: #C9A961;
+  font-size: 24px;
+  margin: 0 12px;
+}
+
+.ornament-divider-christmas {
+  position: relative;
+  text-align: center;
+  margin: 3rem auto;
+  max-width: 120px;
+}
+
+.ornament-divider-christmas::before {
+  content: '━━━ ❋ ━━━';
+  color: #C9A961;
+  opacity: 0.3;
+  font-size: 14px;
+  letter-spacing: 4px;
+}
+
+/* Ramos de Pinheiro Minimalistas */
+.pine-branch {
+  position: absolute;
+  width: 80px;
+  height: 100px;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.pine-branch-left {
+  top: 60px;
+  left: 80px;
+}
+
+.pine-branch-right {
+  top: 60px;
+  right: 80px;
+}
+
+/* Badge Natalino */
+.christmas-badge {
+  display: inline-block;
+  border: 1px solid #2D5016;
+  padding: 10px 28px;
+  background: transparent;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #2D5016;
+  margin-bottom: 24px;
+}
+
+/* Ribbon Abstrato (Topo dos Cards) */
+.card-ribbon {
+  border-top: 3px solid #C9A961;
+}
+
+/* Neve Minimalista */
+@keyframes gentleSnowfall {
+  0% {
+    transform: translateY(-10vh) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.4;
+  }
+  90% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(110vh) translateX(30px);
+    opacity: 0;
+  }
+}
+
+.gentle-snowflake {
+  position: fixed;
+  width: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  filter: blur(0.5px);
+  animation: gentleSnowfall linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ===== Animações de Texto com Gradiente de Natal ===== */
+@keyframes gradient-foreground-1 {
+  from, 16.667%, to {
+    opacity: 1;
+  }
+  33.333%, 83.333% {
+    opacity: 0;
+  }
+}
+
+.animate-gradient-foreground-1 {
+  animation: gradient-foreground-1 8s infinite;
+}
+
+@keyframes gradient-foreground-2 {
+  from, to {
+    opacity: 0;
+  }
+  33.333%, 50% {
+    opacity: 1;
+  }
+  16.667%, 66.667% {
+    opacity: 0;
+  }
+}
+
+.animate-gradient-foreground-2 {
+  animation: gradient-foreground-2 8s infinite;
+}
+
+@keyframes gradient-foreground-3 {
+  from, 50%, to {
+    opacity: 0;
+  }
+  66.667%, 83.333% {
+    opacity: 1;
+  }
+}
+
+.animate-gradient-foreground-3 {
+  animation: gradient-foreground-3 8s infinite;
+}
+
+@keyframes gradient-foreground-4 {
+  from, 83.333%, to {
+    opacity: 0;
+  }
+  16.667%, 33.333% {
+    opacity: 1;
+  }
+}
+
+.animate-gradient-foreground-4 {
+  animation: gradient-foreground-4 8s infinite;
+}
+
+/* Gradientes de Natal - Vermelho (palavra 1: "Um") */
+.from-gradient-1-start {
+  --tw-gradient-from: #C41E3A; /* Vermelho natal vibrante */
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(196, 30, 58, 0));
+}
+
+.to-gradient-1-end {
+  --tw-gradient-to: #E63946; /* Vermelho claro */
+}
+
+/* Gradientes de Natal - Dourado (palavra 2: "Natal") */
+.from-gradient-2-start {
+  --tw-gradient-from: #B8860B; /* Dourado escuro */
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(184, 134, 11, 0));
+}
+
+.to-gradient-2-end {
+  --tw-gradient-to: #DAA520; /* Dourado claro */
+}
+
+/* Gradientes de Natal - Verde Pinheiro (palavra 3: "saudável e") */
+.from-gradient-3-start {
+  --tw-gradient-from: #2D5016; /* Verde escuro pinheiro */
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(45, 80, 22, 0));
+}
+
+.to-gradient-3-end {
+  --tw-gradient-to: #4A7C2C; /* Verde médio */
+}
+
+/* Gradientes de Natal - Sage (palavra 4: "sofisticado") */
+.from-gradient-4-start {
+  --tw-gradient-from: #8B9D83; /* Sage */
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(139, 157, 131, 0));
+}
+
+.to-gradient-4-end {
+  --tw-gradient-to: #A8B5A0; /* Sage claro */
+}
+
+/* Animações de Background */
+@keyframes gradient-background-1 {
+  from, 16.667%, to {
+    opacity: 0;
+  }
+  25%, 91.667% {
+    opacity: 1;
+  }
+}
+
+.before\:animate-gradient-background-1::before {
+  animation: gradient-background-1 8s infinite;
+}
+
+@keyframes gradient-background-2 {
+  from, to {
+    opacity: 1;
+  }
+  33.333%, 50% {
+    opacity: 0;
+  }
+  25%, 58.333% {
+    opacity: 1;
+  }
+}
+
+.before\:animate-gradient-background-2::before {
+  animation: gradient-background-2 8s infinite;
+}
+
+@keyframes gradient-background-3 {
+  from, 58.333%, 91.667%, to {
+    opacity: 1;
+  }
+  66.667%, 83.333% {
+    opacity: 0;
+  }
+}
+
+.before\:animate-gradient-background-3::before {
+  animation: gradient-background-3 8s infinite;
+}
+
+@keyframes gradient-background-4 {
+  from, 83.333%, to {
+    opacity: 1;
+  }
+  16.667%, 33.333% {
+    opacity: 0;
+  }
+}
+
+.before\:animate-gradient-background-4::before {
+  animation: gradient-background-4 8s infinite;
+}
+
+/* Utilitários para o componente de texto */
+.select-none {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.text-transparent {
+  color: transparent;
+}
+
+.before\:content-\[attr\(data-content\)\]::before {
+  content: attr(data-content);
+}

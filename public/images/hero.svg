@@ -1,0 +1,9 @@
+<svg width="1200" height="600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="600" fill="#1a1a1f"/>
+  <text x="600" y="300" font-family="Arial" font-size="48" fill="#D4AF37" text-anchor="middle">
+    🎄 Cardápio de Natal ThinkFit 2025
+  </text>
+  <text x="600" y="360" font-family="Arial" font-size="24" fill="#fff" text-anchor="middle">
+    Adicione suas imagens em /public/images/
+  </text>
+</svg>

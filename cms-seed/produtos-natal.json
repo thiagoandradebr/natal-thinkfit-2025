@@ -1,0 +1,80 @@
+[
+  {
+    "slug": "red-velvet",
+    "nome": "Red Velvet",
+    "preco": 417.00,
+    "tamanho": "22 cm",
+    "descricao_curta": "Massa Red Velvet com recheio de cream cheese e geleia de frutas vermelhas.",
+    "descricao_longa": "MASSA RED VELVET, DUPLO RECHEIO DE BRIGADEIRO DE CREAM CHEESE E GELEIA DE FRUTAS VERMELHAS. COBERTURA DE GANACHE DE CHOCOLATE BRANCO. SEM GLÚTEN, ZERO LACTOSE, LOW SUGAR.",
+    "fotos": ["/images/products/red-velvet/1.jpg", "/images/products/red-velvet/2.jpg"],
+    "destaque": true,
+    "status": "disponivel",
+    "ordem": 1,
+    "quantidade_estoque": 20
+  },
+  {
+    "slug": "dark-cacau",
+    "nome": "Dark Cacau",
+    "preco": 397.00,
+    "tamanho": "22 cm",
+    "descricao_curta": "Bolo de chocolate intenso com recheio de brigadeiro dark.",
+    "descricao_longa": "MASSA DE CHOCOLATE DARK 70%, RECHEIO DE BRIGADEIRO DE CHOCOLATE BELGA DARK. COBERTURA DE GANACHE DARK. SEM GLÚTEN, ZERO LACTOSE, LOW SUGAR.",
+    "fotos": ["/images/products/dark-cacau/1.jpg", "/images/products/dark-cacau/2.jpg"],
+    "destaque": true,
+    "status": "disponivel",
+    "ordem": 2,
+    "quantidade_estoque": 20
+  },
+  {
+    "slug": "vanilla-dream",
+    "nome": "Vanilla Dream",
+    "preco": 387.00,
+    "tamanho": "22 cm",
+    "descricao_curta": "Bolo de baunilha com recheio de creme de baunilha Madagascar.",
+    "descricao_longa": "MASSA DE BAUNILHA MADAGASCAR, RECHEIO DE CREME DE BAUNILHA E FRUTAS VERMELHAS. COBERTURA DE CHANTILLY DE COCO. SEM GLÚTEN, ZERO LACTOSE, LOW SUGAR.",
+    "fotos": ["/images/products/vanilla-dream/1.jpg", "/images/products/vanilla-dream/2.jpg"],
+    "destaque": false,
+    "status": "disponivel",
+    "ordem": 3,
+    "quantidade_estoque": 15
+  },
+  {
+    "slug": "cake-arvore-natal",
+    "nome": "Cake Árvore de Natal",
+    "preco": 457.00,
+    "tamanho": "15 cm altura",
+    "descricao_curta": "Bolo decorado em formato de árvore de Natal com detalhes comestíveis.",
+    "descricao_longa": "MASSA DE CHOCOLATE COM ESPECIARIAS NATALINAS, RECHEIO DE BRIGADEIRO DE PISTACHE. DECORAÇÃO ARTESANAL EM FORMATO DE ÁRVORE DE NATAL COM DETALHES COMESTÍVEIS. SEM GLÚTEN, ZERO LACTOSE, LOW SUGAR.",
+    "fotos": ["/images/products/cake-arvore-natal/1.jpg", "/images/products/cake-arvore-natal/2.jpg"],
+    "destaque": true,
+    "status": "disponivel",
+    "ordem": 4,
+    "quantidade_estoque": 10
+  },
+  {
+    "slug": "brownie-guirlanda",
+    "nome": "Brownie Guirlanda",
+    "preco": 297.00,
+    "tamanho": "20 cm diâmetro",
+    "descricao_curta": "Brownie em formato de guirlanda com frutas vermelhas e pistache.",
+    "descricao_longa": "BROWNIE DARK CHOCOLATE EM FORMATO DE GUIRLANDA NATALINA. DECORADO COM FRUTAS VERMELHAS FRESCAS, PISTACHE E RASPAS DE CHOCOLATE BRANCO. SEM GLÚTEN, ZERO LACTOSE, LOW SUGAR.",
+    "fotos": ["/images/products/brownie-guirlanda/1.jpg", "/images/products/brownie-guirlanda/2.jpg"],
+    "destaque": false,
+    "status": "disponivel",
+    "ordem": 5,
+    "quantidade_estoque": 25
+  },
+  {
+    "slug": "mousse-natalina",
+    "nome": "Mousse Natalina",
+    "preco": 347.00,
+    "tamanho": "Porção 6-8 pessoas",
+    "descricao_curta": "Mousse de chocolate branco com frutas vermelhas e especiarias.",
+    "descricao_longa": "MOUSSE DE CHOCOLATE BRANCO COM TOQUE DE CANELA E CARDAMOMO. CAMADAS DE GELEIA DE FRUTAS VERMELHAS. BASE DE BROWNIE CROCANTE. SEM GLÚTEN, ZERO LACTOSE, LOW SUGAR.",
+    "fotos": ["/images/products/mousse-natalina/1.jpg", "/images/products/mousse-natalina/2.jpg"],
+    "destaque": false,
+    "status": "disponivel",
+    "ordem": 6,
+    "quantidade_estoque": 15
+  }
+]
