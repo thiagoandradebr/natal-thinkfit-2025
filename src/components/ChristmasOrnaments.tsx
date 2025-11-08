@@ -24,10 +24,11 @@ export default function ChristmasOrnaments() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Configurar tamanho do canvas
+    // Configurar tamanho do canvas - cobrir toda a página, não apenas viewport
     const resizeCanvas = () => {
       canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      // Altura total do documento para cobrir toda a página
+      canvas.height = Math.max(window.innerHeight, document.documentElement.scrollHeight)
     }
     resizeCanvas()
     window.addEventListener('resize', resizeCanvas)
@@ -44,7 +45,7 @@ export default function ChristmasOrnaments() {
     // Criar ornamentos
     const createOrnaments = () => {
       const ornaments: Ornament[] = []
-      const count = Math.min(15, Math.floor(window.innerWidth / 100)) // Máximo 15 ornamentos
+      const count = Math.min(30, Math.floor(window.innerWidth / 60)) // Máximo 30 ornamentos (aumentado)
 
       for (let i = 0; i < count; i++) {
         const types: ('ball' | 'star' | 'snowflake')[] = ['ball', 'star', 'snowflake']
@@ -66,7 +67,7 @@ export default function ChristmasOrnaments() {
     // Desenhar ornamento
     const drawOrnament = (ornament: Ornament) => {
       ctx.save()
-      ctx.globalAlpha = 0.15
+      ctx.globalAlpha = 0.35 // Aumentado de 0.15 para 0.35
       ctx.fillStyle = ornament.color
       ctx.strokeStyle = ornament.color
       ctx.lineWidth = 2
@@ -78,7 +79,7 @@ export default function ChristmasOrnaments() {
         ctx.fill()
         
         // Brilho
-        ctx.globalAlpha = 0.3
+        ctx.globalAlpha = 0.5 // Aumentado de 0.3 para 0.5
         ctx.beginPath()
         ctx.arc(
           ornament.x - ornament.radius / 3,
@@ -91,7 +92,7 @@ export default function ChristmasOrnaments() {
         ctx.fill()
       } else if (ornament.type === 'star') {
         // Estrela
-        ctx.globalAlpha = 0.2
+        ctx.globalAlpha = 0.4 // Aumentado de 0.2 para 0.4
         const spikes = 5
         const outerRadius = ornament.radius
         const innerRadius = ornament.radius / 2
@@ -109,7 +110,7 @@ export default function ChristmasOrnaments() {
         ctx.fill()
       } else {
         // Floco de neve
-        ctx.globalAlpha = 0.15
+        ctx.globalAlpha = 0.35 // Aumentado de 0.15 para 0.35
         const arms = 6
         for (let i = 0; i < arms; i++) {
           const angle = (i * Math.PI * 2) / arms
@@ -193,8 +194,12 @@ export default function ChristmasOrnaments() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
-      style={{ mixBlendMode: 'multiply' }}
+      className="fixed top-0 left-0 pointer-events-none z-0"
+      style={{ 
+        mixBlendMode: 'multiply',
+        width: '100%',
+        height: '100%'
+      }}
     />
   )
 }

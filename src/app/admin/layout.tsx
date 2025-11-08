@@ -16,8 +16,11 @@ import {
   ChefHat,
   Sliders
 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import AdminGuard from '@/components/AdminGuard'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { signOut, user } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const pathname = usePathname()
 
@@ -31,7 +34,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ]
 
   return (
-    <div className="min-h-screen bg-beige-lightest">
+    <AdminGuard>
+      <div className="min-h-screen bg-beige-lightest">
       {/* Sidebar */}
       <motion.aside
         initial={false}
@@ -87,7 +91,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Logout */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-beige-medium">
-          <button className="flex items-center gap-3 px-4 py-3 w-full text-brown-medium hover:bg-beige-lightest hover:text-wine rounded-lg transition-all">
+          <button 
+            onClick={signOut}
+            className="flex items-center gap-3 px-4 py-3 w-full text-brown-medium hover:bg-beige-lightest hover:text-wine rounded-lg transition-all"
+          >
             <LogOut size={20} />
             {sidebarOpen && (
               <span className="font-body text-sm uppercase tracking-wider">
@@ -121,5 +128,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </main>
     </div>
+    </AdminGuard>
   )
 }

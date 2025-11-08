@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { CartProvider } from '@/contexts/CartContext'
 import { ToastProvider } from '@/components/ToastProvider'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 export const metadata: Metadata = {
   title: 'Cardápio de Natal ThinkFit — Bolos sem glúten, zero lactose e low sugar',
@@ -38,9 +39,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
-        <ToastProvider>
-          <CartProvider>{children}</CartProvider>
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <CartProvider>{children}</CartProvider>
+          </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   )

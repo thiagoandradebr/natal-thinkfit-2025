@@ -267,10 +267,10 @@ export default function Home() {
             ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
             : false
           
-          return Array.from({ length: 18 }).map((_, i) => {
+          return Array.from({ length: 35 }).map((_, i) => {
             const left = `${(i * 47) % 100}%`
             const top = `${(i * 31) % 100}%`
-            const opacity = 0.05 + (i % 3) * 0.03
+            const opacity = 0.15 + (i % 3) * 0.08 // Aumentado de 0.05-0.14 para 0.15-0.39
             const delay = i * 0.3
             const duration = 4 + (i % 3) * 1
             const size = [8, 12, 16][i % 3]
@@ -380,6 +380,74 @@ export default function Home() {
         {/* Ornamento decorativo de fundo */}
         <div className="absolute top-20 right-0 w-96 h-96 border border-sage opacity-5 rounded-full" />
         <div className="absolute bottom-20 left-0 w-64 h-64 border border-gold-warm opacity-5 rounded-full" />
+
+        {/* Elementos Decorativos Flutuantes Natalinos */}
+        {(() => {
+          const prefersReducedMotion = typeof window !== 'undefined' 
+            ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
+            : false
+          
+          return Array.from({ length: 20 }).map((_, i) => {
+            const left = `${(i * 53) % 100}%`
+            const top = `${(i * 37) % 100}%`
+            const opacity = 0.18 + (i % 3) * 0.07
+            const delay = i * 0.25
+            const duration = 5 + (i % 3) * 1.5
+            const size = [10, 14, 18][i % 3]
+            const shape = i % 3 === 0 ? 'star' : i % 3 === 1 ? 'circle' : 'snowflake'
+            
+            return (
+              <motion.div
+                key={`diferenciais-${i}`}
+                className="absolute pointer-events-none"
+                style={{
+                  left,
+                  top,
+                  opacity,
+                  zIndex: 0,
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  color: i % 2 === 0 ? '#C9A961' : '#2d5016'
+                }}
+                animate={prefersReducedMotion ? {} : {
+                  y: [0, -25, 0],
+                  opacity: [opacity, opacity * 1.3, opacity],
+                  rotate: [0, 180, 360]
+                }}
+                transition={{
+                  duration,
+                  delay,
+                  repeat: Infinity,
+                  ease: 'easeInOut'
+                }}
+              >
+                {shape === 'star' && (
+                  <Star size={size} fill="currentColor" />
+                )}
+                {shape === 'circle' && (
+                  <div 
+                    style={{
+                      width: `${size}px`,
+                      height: `${size}px`,
+                      borderRadius: '50%',
+                      background: 'currentColor'
+                    }}
+                  />
+                )}
+                {shape === 'snowflake' && (
+                  <div 
+                    style={{
+                      width: `${size}px`,
+                      height: `${size}px`,
+                      background: 'currentColor',
+                      clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
+                    }}
+                  />
+                )}
+              </motion.div>
+            )
+          })
+        })()}
 
         <div className="container mx-auto px-6 md:px-12 lg:px-20 relative z-10" style={{ maxWidth: '1400px' }}>
           {/* Título com ornamentos */}
