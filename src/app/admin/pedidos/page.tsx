@@ -29,7 +29,7 @@ export default function PedidosPage() {
       // Buscar apenas campos necessários para melhor performance
       const { data, error } = await supabase
         .from('pedidos_natal')
-        .select('id, nome_cliente, telefone_whatsapp, email, total, status_pagamento, metodo_pagamento, endereco_entrega, criado_em, itens, data_entrega, pago')
+        .select('id, nome_cliente, telefone_whatsapp, email, total, status_pagamento, metodo_pagamento, endereco_entrega, criado_em, atualizado_em, itens, data_entrega, pago')
         .order('criado_em', { ascending: false })
 
       if (error) {

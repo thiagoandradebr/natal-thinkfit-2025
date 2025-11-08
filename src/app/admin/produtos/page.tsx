@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Edit, Trash2, Search, Star } from 'lucide-react'
+import { Plus, Edit, Trash2, Search, Star, Package } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Produto } from '@/types/database'
 import Link from 'next/link'
@@ -21,7 +21,7 @@ export default function ProdutosPage() {
       // Buscar apenas campos necessários para a listagem (sem fotos completas)
       const { data, error } = await supabase
         .from('produtos_natal')
-        .select('id, nome, slug, descricao_curta, preco, tamanho, status, destaque, created_at, fotos')
+        .select('id, nome, slug, descricao_curta, descricao_longa, preco, tamanho, status, destaque, created_at, updated_at, ordem, fotos')
         .order('created_at', { ascending: false })
 
       if (error) throw error

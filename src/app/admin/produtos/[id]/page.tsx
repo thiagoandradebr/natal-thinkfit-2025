@@ -11,7 +11,8 @@ import ImageUpload from '@/components/ImageUpload'
 export default function EditProdutoPage() {
   const router = useRouter()
   const params = useParams()
-  const isNew = params.id === 'novo'
+  const produtoId = typeof params.id === 'string' ? params.id : ''
+  const isNew = produtoId === 'novo'
 
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
@@ -29,41 +30,43 @@ export default function EditProdutoPage() {
   })
 
   useEffect(() => {
-    if (!isNew) {
-      fetchProduto()
-    }
-  }, [params.id])
-
-  const fetchProduto = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('produtos_natal')
-        .select('*')
-        .eq('id', params.id)
-        .single()
-
-      if (error) throw error
-      if (data) {
-        setFormData({
-          nome: data.nome || '',
-          slug: data.slug || '',
-          descricao_curta: data.descricao_curta || '',
-          descricao_longa: data.descricao_longa || '',
-          preco: data.preco || 0,
-          tamanho: data.tamanho || '',
-          fotos: data.fotos || [],
-          destaque: data.destaque || false,
-          status: data.status || 'disponivel',
-          quantidade_estoque: data.quantidade_estoque || 0,
-        })
+    const fetchProduto = async () => {
+      if (!produtoId || isNew) {
+        setLoading(false)
+        return
       }
-    } catch (error) {
-      console.error('Erro ao buscar produto:', error)
-      alert('Erro ao carregar produto')
-    } finally {
-      setLoading(false)
+      try {
+        const { data, error } = await supabase
+          .from('produtos_natal')
+          .select('*')
+          .eq('id', produtoId)
+          .single()
+
+        if (error) throw error
+        if (data) {
+          setFormData({
+            nome: data.nome || '',
+            slug: data.slug || '',
+            descricao_curta: data.descricao_curta || '',
+            descricao_longa: data.descricao_longa || '',
+            preco: data.preco || 0,
+            tamanho: data.tamanho || '',
+            fotos: data.fotos || [],
+            destaque: data.destaque || false,
+            status: data.status || 'disponivel',
+            quantidade_estoque: data.quantidade_estoque || 0,
+          })
+        }
+      } catch (error) {
+        console.error('Erro ao buscar produto:', error)
+        alert('Erro ao carregar produto')
+      } finally {
+        setLoading(false)
+      }
     }
-  }
+
+    fetchProduto()
+  }, [produtoId, isNew])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,7 +85,7 @@ export default function EditProdutoPage() {
         const { error } = await supabase
           .from('produtos_natal')
           .update(formData)
-          .eq('id', params.id)
+          .eq('id', produtoId)
           .select('*')
 
         if (error) throw error
@@ -287,7 +290,7 @@ export default function EditProdutoPage() {
               </label>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Fotos Moderno */}
         <motion.div
