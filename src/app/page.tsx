@@ -263,17 +263,17 @@ export default function Home() {
           </svg>
         </div>
 
-        {/* Elementos Decorativos Flutuantes - Reduzido para melhor performance */}
+        {/* Elementos Decorativos Flutuantes */}
         {(() => {
           const prefersReducedMotion = typeof window !== 'undefined' 
             ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
             : false
           
-          return Array.from({ length: 20 }).map((_, i) => { // Reduzido de 35 para 20
+          return Array.from({ length: 35 }).map((_, i) => {
             const left = `${(i * 47) % 100}%`
             const top = `${(i * 31) % 100}%`
-            const opacity = 0.15 + (i % 3) * 0.08 // Aumentado de 0.05-0.14 para 0.15-0.39
-            const delay = i * 0.3
+            const opacity = 0.05 + (i % 3) * 0.03
+            const delay = i * 0.2
             const duration = 4 + (i % 3) * 1
             const size = [8, 12, 16][i % 3]
             const shape = i % 3 === 0 ? 'star' : i % 3 === 1 ? 'circle' : 'snowflake'
@@ -293,7 +293,8 @@ export default function Home() {
                 }}
                 animate={prefersReducedMotion ? {} : {
                   y: [0, -20, 0],
-                  opacity: [opacity, opacity * 1.5, opacity]
+                  opacity: [opacity, opacity * 1.5, opacity],
+                  rotate: [0, 180, 360]
                 }}
                 transition={{
                   duration,
@@ -389,10 +390,10 @@ export default function Home() {
             ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
             : false
           
-          return Array.from({ length: 12 }).map((_, i) => { // Reduzido de 20 para 12
+          return Array.from({ length: 20 }).map((_, i) => {
             const left = `${(i * 53) % 100}%`
             const top = `${(i * 37) % 100}%`
-            const opacity = 0.18 + (i % 3) * 0.07
+            const opacity = 0.12 + (i % 3) * 0.05
             const delay = i * 0.25
             const duration = 5 + (i % 3) * 1.5
             const size = [10, 14, 18][i % 3]
@@ -602,7 +603,7 @@ export default function Home() {
         {/* Decorações Natalinas de Fundo */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {/* Estrelas flutuantes - Reduzido para melhor performance */}
-          {Array.from({ length: 8 }).map((_, i) => ( // Reduzido de 12 para 8
+          {Array.from({ length: 12 }).map((_, i) => (
             <motion.div
               key={i}
               className="absolute"
@@ -629,7 +630,7 @@ export default function Home() {
           ))}
           
           {/* Flocos de neve - Reduzido para melhor performance */}
-          {Array.from({ length: 5 }).map((_, i) => ( // Reduzido de 8 para 5
+          {Array.from({ length: 8 }).map((_, i) => (
             <motion.div
               key={`snow-${i}`}
               className="absolute text-white/5"

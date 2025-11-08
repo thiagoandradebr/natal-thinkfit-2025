@@ -24,11 +24,10 @@ export default function ChristmasOrnaments() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Configurar tamanho do canvas - cobrir toda a página, não apenas viewport
+    // Configurar tamanho do canvas
     const resizeCanvas = () => {
       canvas.width = window.innerWidth
-      // Altura total do documento para cobrir toda a página
-      canvas.height = Math.max(window.innerHeight, document.documentElement.scrollHeight)
+      canvas.height = window.innerHeight
     }
     resizeCanvas()
     window.addEventListener('resize', resizeCanvas)
@@ -45,8 +44,7 @@ export default function ChristmasOrnaments() {
     // Criar ornamentos
     const createOrnaments = () => {
       const ornaments: Ornament[] = []
-      // Reduzido para melhorar performance - máximo 15 ornamentos
-      const count = Math.min(15, Math.floor(window.innerWidth / 80))
+      const count = Math.min(15, Math.floor(window.innerWidth / 100)) // Máximo 15 ornamentos
 
       for (let i = 0; i < count; i++) {
         const types: ('ball' | 'star' | 'snowflake')[] = ['ball', 'star', 'snowflake']
@@ -68,7 +66,7 @@ export default function ChristmasOrnaments() {
     // Desenhar ornamento
     const drawOrnament = (ornament: Ornament) => {
       ctx.save()
-      ctx.globalAlpha = 0.35 // Aumentado de 0.15 para 0.35
+      ctx.globalAlpha = 0.15
       ctx.fillStyle = ornament.color
       ctx.strokeStyle = ornament.color
       ctx.lineWidth = 2
@@ -80,7 +78,7 @@ export default function ChristmasOrnaments() {
         ctx.fill()
         
         // Brilho
-        ctx.globalAlpha = 0.5 // Aumentado de 0.3 para 0.5
+        ctx.globalAlpha = 0.3
         ctx.beginPath()
         ctx.arc(
           ornament.x - ornament.radius / 3,
@@ -93,7 +91,7 @@ export default function ChristmasOrnaments() {
         ctx.fill()
       } else if (ornament.type === 'star') {
         // Estrela
-        ctx.globalAlpha = 0.4 // Aumentado de 0.2 para 0.4
+        ctx.globalAlpha = 0.2
         const spikes = 5
         const outerRadius = ornament.radius
         const innerRadius = ornament.radius / 2
@@ -111,7 +109,7 @@ export default function ChristmasOrnaments() {
         ctx.fill()
       } else {
         // Floco de neve
-        ctx.globalAlpha = 0.35 // Aumentado de 0.15 para 0.35
+        ctx.globalAlpha = 0.15
         const arms = 6
         for (let i = 0; i < arms; i++) {
           const angle = (i * Math.PI * 2) / arms
@@ -128,18 +126,48 @@ export default function ChristmasOrnaments() {
       ctx.restore()
     }
 
-    // Animação com throttling para melhor performance
-    let lastTime = performance.now()
-    const targetFPS = 30 // Reduzir FPS para melhorar performance
-    const frameInterval = 1000 / targetFPS
+    // Detectar e resolver colisão entre duas bolas
+    const checkCollision = (ornament1: Ornament, ornament2: Ornament) => {
+      const dx = ornament2.x - ornament1.x
+      const dy = ornament2.y - ornament1.y
+      const distance = Math.sqrt(dx * dx + dy * dy)
+      const minDistance = ornament1.radius + ornament2.radius
 
-    const animate = (currentTime: number) => {
-      if (currentTime - lastTime < frameInterval) {
-        animationFrameRef.current = requestAnimationFrame(animate)
-        return
+      if (distance < minDistance && distance > 0) {
+        // Calcular ângulo de colisão
+        const angle = Math.atan2(dy, dx)
+        const sin = Math.sin(angle)
+        const cos = Math.cos(angle)
+
+        // Rotacionar velocidades para o sistema de coordenadas da colisão
+        const vx1 = ornament1.vx * cos + ornament1.vy * sin
+        const vy1 = ornament1.vy * cos - ornament1.vx * sin
+        const vx2 = ornament2.vx * cos + ornament2.vy * sin
+        const vy2 = ornament2.vy * cos - ornament2.vx * sin
+
+        // Colisão elástica com amortecimento
+        const finalVx1 = ((ornament1.radius - ornament2.radius) * vx1 + 2 * ornament2.radius * vx2) / (ornament1.radius + ornament2.radius) * 0.9
+        const finalVx2 = ((ornament2.radius - ornament1.radius) * vx2 + 2 * ornament1.radius * vx1) / (ornament1.radius + ornament2.radius) * 0.9
+
+        // Rotacionar de volta para o sistema de coordenadas original
+        ornament1.vx = finalVx1 * cos - vy1 * sin
+        ornament1.vy = vy1 * cos + finalVx1 * sin
+        ornament2.vx = finalVx2 * cos - vy2 * sin
+        ornament2.vy = vy2 * cos + finalVx2 * sin
+
+        // Separar ornamentos para evitar sobreposição
+        const overlap = minDistance - distance
+        const separationX = (dx / distance) * overlap * 0.5
+        const separationY = (dy / distance) * overlap * 0.5
+        ornament1.x -= separationX
+        ornament1.y -= separationY
+        ornament2.x += separationX
+        ornament2.y += separationY
       }
-      lastTime = currentTime
+    }
 
+    // Animação
+    const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       ornamentsRef.current.forEach((ornament) => {
@@ -166,17 +194,20 @@ export default function ChristmasOrnaments() {
         drawOrnament(ornament)
       })
 
+      // Verificar colisões entre todos os ornamentos
+      for (let i = 0; i < ornamentsRef.current.length; i++) {
+        for (let j = i + 1; j < ornamentsRef.current.length; j++) {
+          checkCollision(ornamentsRef.current[i], ornamentsRef.current[j])
+        }
+      }
+
       animationFrameRef.current = requestAnimationFrame(animate)
     }
 
-    animationFrameRef.current = requestAnimationFrame(animate)
+    animate()
 
-    // Interação com mouse - throttled para melhor performance
-    let mouseThrottle = 0
+    // Interação com mouse
     const handleMouseMove = (e: MouseEvent) => {
-      mouseThrottle++
-      if (mouseThrottle % 3 !== 0) return // Processar apenas 1 a cada 3 eventos
-
       const mouseX = e.clientX
       const mouseY = e.clientY
 
@@ -188,8 +219,8 @@ export default function ChristmasOrnaments() {
         // Repelir ornamentos próximos ao cursor
         if (distance < 150) {
           const force = (150 - distance) / 150
-          ornament.vx -= (dx / distance) * force * 1.5 // Reduzido de 2 para 1.5
-          ornament.vy -= (dy / distance) * force * 1.5
+          ornament.vx -= (dx / distance) * force * 2
+          ornament.vy -= (dy / distance) * force * 2
         }
       })
     }
@@ -209,13 +240,8 @@ export default function ChristmasOrnaments() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed top-0 left-0 pointer-events-none z-0"
-      style={{ 
-        mixBlendMode: 'multiply',
-        width: '100%',
-        height: '100%',
-        willChange: 'transform' // Otimização de renderização
-      }}
+      className="fixed inset-0 pointer-events-none z-0"
+      style={{ mixBlendMode: 'multiply' }}
     />
   )
 }
