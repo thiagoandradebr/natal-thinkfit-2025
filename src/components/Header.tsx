@@ -17,8 +17,6 @@ export default function Header() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const { scrollY } = useScroll()
   const headerOpacity = useTransform(scrollY, [0, 100], [0.95, 1])
-  const headerBlur = useTransform(scrollY, [0, 100], [10, 25])
-  const headerBlurString = useTransform(headerBlur, (blur) => `blur(${blur}px)`)
   const cartItemCount = getItemCount()
   const cartTotal = getTotal()
   const isHomePage = pathname === '/'
@@ -109,11 +107,11 @@ export default function Header() {
           width: '100%',
           height: '100%',
           opacity: headerOpacity,
-          backdropFilter: headerBlurString,
+          backdropFilter: isScrolled ? 'blur(25px)' : 'blur(10px)',
           boxShadow: isScrolled 
             ? '0 4px 16px rgba(0, 0, 0, 0.12)' 
             : '0 2px 12px rgba(0, 0, 0, 0.08)'
-        } as React.CSSProperties}
+        }}
         className={`transition-all duration-500 ${
           isScrolled 
             ? 'bg-white/98 border-b-2 border-gold-warm/20' 
@@ -136,7 +134,7 @@ export default function Header() {
                 style={{ height: isScrolled ? '64px' : '76px' }}
               />
             ) : (
-              <ThinkFitLogo className={`transition-all duration-300`} style={{ height: isScrolled ? '64px' : '76px' }} />
+              <ThinkFitLogo className={`transition-all duration-300 ${isScrolled ? 'h-16' : 'h-19'}`} />
             )}
           </div>
           <div className={`transition-all duration-300 ${isScrolled ? 'h-12' : 'h-14'} w-[1px] bg-gradient-to-b from-transparent via-gold-warm/50 to-transparent`} />
