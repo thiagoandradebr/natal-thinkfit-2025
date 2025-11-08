@@ -45,7 +45,8 @@ export default function ChristmasOrnaments() {
     // Criar ornamentos
     const createOrnaments = () => {
       const ornaments: Ornament[] = []
-      const count = Math.min(30, Math.floor(window.innerWidth / 60)) // Máximo 30 ornamentos (aumentado)
+      // Reduzido para melhorar performance - máximo 15 ornamentos
+      const count = Math.min(15, Math.floor(window.innerWidth / 80))
 
       for (let i = 0; i < count; i++) {
         const types: ('ball' | 'star' | 'snowflake')[] = ['ball', 'star', 'snowflake']
@@ -127,8 +128,18 @@ export default function ChristmasOrnaments() {
       ctx.restore()
     }
 
-    // Animação
-    const animate = () => {
+    // Animação com throttling para melhor performance
+    let lastTime = performance.now()
+    const targetFPS = 30 // Reduzir FPS para melhorar performance
+    const frameInterval = 1000 / targetFPS
+
+    const animate = (currentTime: number) => {
+      if (currentTime - lastTime < frameInterval) {
+        animationFrameRef.current = requestAnimationFrame(animate)
+        return
+      }
+      lastTime = currentTime
+
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       ornamentsRef.current.forEach((ornament) => {
@@ -158,10 +169,14 @@ export default function ChristmasOrnaments() {
       animationFrameRef.current = requestAnimationFrame(animate)
     }
 
-    animate()
+    animationFrameRef.current = requestAnimationFrame(animate)
 
-    // Interação com mouse
+    // Interação com mouse - throttled para melhor performance
+    let mouseThrottle = 0
     const handleMouseMove = (e: MouseEvent) => {
+      mouseThrottle++
+      if (mouseThrottle % 3 !== 0) return // Processar apenas 1 a cada 3 eventos
+
       const mouseX = e.clientX
       const mouseY = e.clientY
 
@@ -173,13 +188,13 @@ export default function ChristmasOrnaments() {
         // Repelir ornamentos próximos ao cursor
         if (distance < 150) {
           const force = (150 - distance) / 150
-          ornament.vx -= (dx / distance) * force * 2
-          ornament.vy -= (dy / distance) * force * 2
+          ornament.vx -= (dx / distance) * force * 1.5 // Reduzido de 2 para 1.5
+          ornament.vy -= (dy / distance) * force * 1.5
         }
       })
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
 
     // Cleanup
     return () => {
@@ -198,7 +213,8 @@ export default function ChristmasOrnaments() {
       style={{ 
         mixBlendMode: 'multiply',
         width: '100%',
-        height: '100%'
+        height: '100%',
+        willChange: 'transform' // Otimização de renderização
       }}
     />
   )

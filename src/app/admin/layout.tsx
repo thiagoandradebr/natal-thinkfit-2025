@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -12,17 +12,44 @@ import {
   LogOut,
   Menu,
   X,
-  Sparkles,
   ChefHat,
   Sliders
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import AdminGuard from '@/components/AdminGuard'
+import ThinkFitLogo from '@/components/ThinkFitLogo'
+import { supabase } from '@/lib/supabase'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { signOut, user } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const pathname = usePathname()
+
+  useEffect(() => {
+    loadLogo()
+  }, [])
+
+  const loadLogo = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('configuracoes_site')
+        .select('valor')
+        .eq('chave', 'logo_url')
+        .maybeSingle()
+
+      if (error) {
+        console.error('Erro ao carregar logo:', error)
+        return
+      }
+      
+      if (data?.valor) {
+        setLogoUrl(data.valor)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar logo:', error)
+    }
+  }
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/admin' },
@@ -52,19 +79,42 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         
         {/* Header */}
         <div className="h-20 border-b border-beige-medium/50 flex items-center justify-between px-6 bg-gradient-to-r from-white to-beige-lightest/30">
-          {sidebarOpen && (
+          {sidebarOpen ? (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center gap-3"
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-wine to-wine-dark rounded-xl flex items-center justify-center shadow-md">
-                <Sparkles className="text-white w-5 h-5" />
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt="ThinkFit" 
+                  className="h-12 object-contain"
+                />
+              ) : (
+                <ThinkFitLogo className="h-12" />
+              )}
+              <div className="flex flex-col">
+                <span className="font-display text-brown-darkest text-lg font-light tracking-tight leading-tight">
+                  ThinkFit
+                </span>
+                <span className="font-body text-xs text-brown-medium uppercase tracking-wider">
+                  Admin
+                </span>
               </div>
-              <span className="font-display text-brown-darkest text-xl font-light tracking-tight">
-                ThinkFit Admin
-              </span>
             </motion.div>
+          ) : (
+            <div className="flex items-center justify-center w-full">
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt="ThinkFit" 
+                  className="h-10 object-contain"
+                />
+              ) : (
+                <ThinkFitLogo className="h-10" />
+              )}
+            </div>
           )}
           <motion.button
             onClick={() => setSidebarOpen(!sidebarOpen)}

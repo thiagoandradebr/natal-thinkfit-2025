@@ -235,7 +235,8 @@ export default function Home() {
         style={{ 
           backgroundColor: '#F8F6F3',
           paddingTop: '120px', 
-          paddingBottom: '120px'
+          paddingBottom: '120px',
+          position: 'relative' // Adicionado para framer-motion
         }}
       >
         {/* Background Pattern SVG de Estrelas */}
@@ -262,13 +263,13 @@ export default function Home() {
           </svg>
         </div>
 
-        {/* Elementos Decorativos Flutuantes */}
+        {/* Elementos Decorativos Flutuantes - Reduzido para melhor performance */}
         {(() => {
           const prefersReducedMotion = typeof window !== 'undefined' 
             ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
             : false
           
-          return Array.from({ length: 35 }).map((_, i) => {
+          return Array.from({ length: 20 }).map((_, i) => { // Reduzido de 35 para 20
             const left = `${(i * 47) % 100}%`
             const top = `${(i * 31) % 100}%`
             const opacity = 0.15 + (i % 3) * 0.08 // Aumentado de 0.05-0.14 para 0.15-0.39
@@ -377,18 +378,18 @@ export default function Home() {
       </section>
 
       {/* Seção Diferenciais - Moderno e Fluido */}
-      <section id="diferenciais" className="relative bg-gradient-to-b from-off-white to-beige-lightest overflow-hidden" style={{ padding: '120px 0' }}>
+      <section id="diferenciais" className="relative bg-gradient-to-b from-off-white to-beige-lightest overflow-hidden" style={{ padding: '120px 0', position: 'relative' }}>
         {/* Ornamento decorativo de fundo */}
         <div className="absolute top-20 right-0 w-96 h-96 border border-sage opacity-5 rounded-full" />
         <div className="absolute bottom-20 left-0 w-64 h-64 border border-gold-warm opacity-5 rounded-full" />
 
-        {/* Elementos Decorativos Flutuantes Natalinos */}
+        {/* Elementos Decorativos Flutuantes Natalinos - Reduzido para melhor performance */}
         {(() => {
           const prefersReducedMotion = typeof window !== 'undefined' 
             ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
             : false
           
-          return Array.from({ length: 20 }).map((_, i) => {
+          return Array.from({ length: 12 }).map((_, i) => { // Reduzido de 20 para 12
             const left = `${(i * 53) % 100}%`
             const top = `${(i * 37) % 100}%`
             const opacity = 0.18 + (i % 3) * 0.07
@@ -594,13 +595,14 @@ export default function Home() {
         className="relative overflow-hidden"
         style={{ 
           background: 'linear-gradient(to bottom, #FAFAF8, #F5F1E8)',
-          padding: '120px 0'
+          padding: '120px 0',
+          position: 'relative' // Adicionado para framer-motion
         }}
       >
         {/* Decorações Natalinas de Fundo */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Estrelas flutuantes */}
-          {Array.from({ length: 12 }).map((_, i) => (
+          {/* Estrelas flutuantes - Reduzido para melhor performance */}
+          {Array.from({ length: 8 }).map((_, i) => ( // Reduzido de 12 para 8
             <motion.div
               key={i}
               className="absolute"
@@ -626,8 +628,8 @@ export default function Home() {
             </motion.div>
           ))}
           
-          {/* Flocos de neve */}
-          {Array.from({ length: 8 }).map((_, i) => (
+          {/* Flocos de neve - Reduzido para melhor performance */}
+          {Array.from({ length: 5 }).map((_, i) => ( // Reduzido de 8 para 5
             <motion.div
               key={`snow-${i}`}
               className="absolute text-white/5"

@@ -81,31 +81,42 @@ export default function SetupPage() {
 
   return (
     <div className="max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h2 className="font-display text-3xl text-brown-darkest font-light mb-2">
+      {/* Header Moderno */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8 relative"
+      >
+        <div className="absolute -top-4 -left-4 w-32 h-32 bg-gold-warm/5 rounded-full blur-2xl" />
+        <h2 className="font-display text-4xl text-brown-darkest font-light mb-3 tracking-tight relative">
           Configuração do Sistema
         </h2>
-        <p className="font-body text-brown-medium text-sm">
+        <p className="font-body text-brown-medium text-sm relative">
           Configure o Supabase Storage para upload de imagens
         </p>
-      </div>
+      </motion.div>
 
-      {/* Setup Card */}
-      <div className="bg-white p-8 shadow-sm">
-        <div className="h-1 bg-gradient-to-r from-gold-warm via-gold to-gold-warm mb-8" />
+      {/* Setup Card Moderno */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-beige-medium/50 relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gold-warm/5 rounded-full blur-3xl -mr-32 -mt-32" />
+        <div className="h-[3px] bg-gradient-to-r from-gold-warm via-gold to-gold-warm mb-8 relative z-10" />
 
-        {/* Storage Section */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-beige-lightest flex items-center justify-center">
-              <ImageIcon className="text-wine" size={24} />
+        {/* Storage Section Moderno */}
+        <div className="space-y-6 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-wine to-wine-dark rounded-xl flex items-center justify-center shadow-lg">
+              <ImageIcon className="text-white" size={28} />
             </div>
             <div>
-              <h3 className="font-body text-sm uppercase tracking-wider text-brown-darkest font-medium">
+              <h3 className="font-display text-2xl text-brown-darkest font-light mb-1">
                 Supabase Storage
               </h3>
-              <p className="font-body text-xs text-brown-medium">
+              <p className="font-body text-sm text-brown-medium">
                 Bucket para armazenar fotos dos produtos
               </p>
             </div>
@@ -139,24 +150,25 @@ export default function SetupPage() {
             </div>
           </motion.div>
 
-          {/* Actions */}
+          {/* Actions Modernas */}
           <div className="flex items-center gap-4">
             <motion.button
               onClick={handleCheck}
               disabled={checking}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className="bg-gradient-to-r from-forest to-forest-dark text-white px-8 py-4 font-body text-sm uppercase tracking-[2px] flex items-center gap-3 shadow-lg disabled:opacity-50"
+              className="bg-gradient-to-r from-forest via-forest-dark to-forest text-white px-8 py-5 font-body text-sm uppercase tracking-wider flex items-center gap-3 shadow-xl rounded-xl hover:shadow-2xl transition-all disabled:opacity-50 group relative overflow-hidden"
             >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               {checking ? (
                 <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Verificando...
+                  <Loader2 size={20} className="animate-spin relative z-10" />
+                  <span className="relative z-10 font-semibold">Verificando...</span>
                 </>
               ) : (
                 <>
-                  <Database size={18} />
-                  Verificar Bucket
+                  <Database size={20} className="relative z-10" />
+                  <span className="relative z-10 font-semibold">Verificar Bucket</span>
                 </>
               )}
             </motion.button>
@@ -167,17 +179,18 @@ export default function SetupPage() {
                 disabled={creating}
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-gradient-to-r from-wine to-wine-dark text-white px-8 py-4 font-body text-sm uppercase tracking-[2px] flex items-center gap-3 shadow-lg disabled:opacity-50"
+                className="bg-gradient-to-r from-wine via-wine-dark to-wine text-white px-8 py-5 font-body text-sm uppercase tracking-wider flex items-center gap-3 shadow-xl rounded-xl hover:shadow-2xl transition-all disabled:opacity-50 group relative overflow-hidden"
               >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 {creating ? (
                   <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Criando...
+                    <Loader2 size={20} className="animate-spin relative z-10" />
+                    <span className="relative z-10 font-semibold">Criando...</span>
                   </>
                 ) : (
                   <>
-                    <ImageIcon size={18} />
-                    Criar Bucket
+                    <ImageIcon size={20} className="relative z-10" />
+                    <span className="relative z-10 font-semibold">Criar Bucket</span>
                   </>
                 )}
               </motion.button>
@@ -185,59 +198,93 @@ export default function SetupPage() {
           </div>
         </div>
 
-        {/* Instructions */}
-        <div className="mt-8 pt-8 border-t border-beige-medium">
-          <h4 className="font-body text-xs uppercase tracking-wider text-brown-darkest mb-4 font-medium">
+        {/* Instructions Modernas */}
+        <div className="mt-8 pt-8 border-t border-beige-medium/50 relative z-10">
+          <h4 className="font-display text-xl text-brown-darkest font-light mb-4">
             Instruções Manuais (se necessário)
           </h4>
-          <div className="space-y-3 font-body text-sm text-brown-medium">
-            <p>Se a criação automática falhar, siga estes passos no Dashboard do Supabase:</p>
+          <div className="space-y-4 font-body text-sm text-brown-medium bg-beige-lightest/50 p-6 rounded-xl">
+            <p className="font-semibold">Se a criação automática falhar, siga estes passos no Dashboard do Supabase:</p>
             <ol className="list-decimal list-inside space-y-2 ml-4">
               <li>Acesse <strong>Storage</strong> no menu lateral</li>
               <li>Clique em <strong>New bucket</strong></li>
-              <li>Nome: <code className="bg-beige-lightest px-2 py-1 text-xs">natal-produtos</code></li>
+              <li>Nome: <code className="bg-white px-3 py-1.5 text-xs rounded-lg font-mono font-semibold text-wine">natal-produtos</code></li>
               <li>Marque <strong>Public bucket</strong> ✅</li>
               <li>Clique em <strong>Create bucket</strong></li>
             </ol>
-            <p className="mt-4">
+            <p className="mt-4 pt-4 border-t border-beige-medium">
               Documentação completa: 
               <a 
                 href="/STORAGE_SETUP.md" 
                 target="_blank"
-                className="text-wine hover:text-wine-dark underline ml-1"
+                className="text-wine hover:text-wine-dark underline ml-1 font-semibold"
               >
                 STORAGE_SETUP.md
               </a>
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Info Cards */}
+      {/* Info Cards Modernos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <div className="bg-white p-6 shadow-sm">
-          <h4 className="font-body text-xs uppercase tracking-wider text-brown-darkest mb-3 font-medium">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-beige-medium/50"
+        >
+          <h4 className="font-display text-lg text-brown-darkest font-light mb-4">
             Configurações do Bucket
           </h4>
-          <ul className="space-y-2 font-body text-sm text-brown-medium">
-            <li>• <strong>Nome:</strong> natal-produtos</li>
-            <li>• <strong>Tipo:</strong> Público</li>
-            <li>• <strong>Tamanho máximo:</strong> 5MB</li>
-            <li>• <strong>Formatos:</strong> PNG, JPG, WEBP</li>
+          <ul className="space-y-3 font-body text-sm text-brown-medium">
+            <li className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-gold-warm rounded-full" />
+              <strong>Nome:</strong> natal-produtos
+            </li>
+            <li className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-gold-warm rounded-full" />
+              <strong>Tipo:</strong> Público
+            </li>
+            <li className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-gold-warm rounded-full" />
+              <strong>Tamanho máximo:</strong> 5MB
+            </li>
+            <li className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-gold-warm rounded-full" />
+              <strong>Formatos:</strong> PNG, JPG, WEBP
+            </li>
           </ul>
-        </div>
+        </motion.div>
 
-        <div className="bg-white p-6 shadow-sm">
-          <h4 className="font-body text-xs uppercase tracking-wider text-brown-darkest mb-3 font-medium">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-beige-medium/50"
+        >
+          <h4 className="font-display text-lg text-brown-darkest font-light mb-4">
             Próximos Passos
           </h4>
-          <ul className="space-y-2 font-body text-sm text-brown-medium">
-            <li>✅ Verificar bucket</li>
-            <li>✅ Criar bucket (se necessário)</li>
-            <li>✅ Testar upload em Produtos</li>
-            <li>✅ Configurar políticas RLS</li>
+          <ul className="space-y-3 font-body text-sm text-brown-medium">
+            <li className="flex items-center gap-2">
+              <CheckCircle size={16} className="text-forest" />
+              Verificar bucket
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle size={16} className="text-forest" />
+              Criar bucket (se necessário)
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle size={16} className="text-forest" />
+              Testar upload em Produtos
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle size={16} className="text-forest" />
+              Configurar políticas RLS
+            </li>
           </ul>
-        </div>
+        </motion.div>
       </div>
     </div>
   )

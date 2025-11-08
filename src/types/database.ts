@@ -33,9 +33,10 @@ export interface Pedido {
   email: string
   itens: ItemPedido[]
   total: number
-  status_pagamento: 'pendente' | 'pago' | 'cancelado'
+  status_pagamento: 'pendente' | 'pago' | 'cancelado' | 'confirmado'
   metodo_pagamento?: string
   endereco_entrega?: string
+  pago?: boolean // Flag para indicar se foi pago (independente do status)
   criado_em: string
   atualizado_em: string
 }

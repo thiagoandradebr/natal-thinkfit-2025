@@ -21,36 +21,33 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      // Buscar produtos
-      const { data: produtos, error: produtosError } = await supabase
-        .from('produtos_natal')
-        .select('*')
+      // Paralelizar queries e buscar apenas campos necessários
+      const [produtosResult, pedidosResult] = await Promise.all([
+        supabase
+          .from('produtos_natal')
+          .select('id, status', { count: 'exact' }),
+        supabase
+          .from('pedidos_natal')
+          .select('total', { count: 'exact' })
+      ])
 
-      if (produtosError) {
-        console.error('Erro ao buscar produtos:', produtosError)
-      }
+      const produtos = produtosResult.data || []
+      const pedidos = pedidosResult.data || []
 
-      // Buscar pedidos
-      const { data: pedidos, error: pedidosError } = await supabase
-        .from('pedidos_natal')
-        .select('*')
-
-      if (pedidosError) {
-        console.error('Erro ao buscar pedidos:', pedidosError)
-      }
-
-      const produtosDisponiveis = produtos?.filter(p => p.status === 'disponivel').length || 0
-      const valorTotal = pedidos?.reduce((sum, p) => sum + (p.total || 0), 0) || 0
+      // Usar count quando disponível para melhor performance
+      const totalProdutos = produtosResult.count ?? produtos.length
+      const totalPedidos = pedidosResult.count ?? pedidos.length
+      const produtosDisponiveis = produtos.filter(p => p.status === 'disponivel').length
+      const valorTotal = pedidos.reduce((sum, p) => sum + (Number(p.total) || 0), 0)
 
       setStats({
-        totalProdutos: produtos?.length || 0,
-        totalPedidos: pedidos?.length || 0,
+        totalProdutos,
+        totalPedidos,
         produtosDisponiveis,
         valorTotal,
       })
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error)
-      // Mesmo com erro, definir valores padrão para não travar a página
       setStats({
         totalProdutos: 0,
         totalPedidos: 0,
@@ -106,77 +103,128 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h2 className="font-display text-3xl text-brown-darkest font-light mb-2">
+      {/* Header com gradiente sutil - otimizado */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="relative"
+      >
+        <div className="absolute -top-4 -left-4 w-24 h-24 bg-gold-warm/5 rounded-full blur-xl" />
+        <h2 className="font-display text-4xl text-brown-darkest font-light mb-3 tracking-tight relative">
           Dashboard
         </h2>
-        <p className="font-body text-brown-medium text-sm">
+        <p className="font-body text-brown-medium text-sm relative">
           Visão geral do sistema - Natal 2025
         </p>
-      </div>
+      </motion.div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Design Moderno */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {cards.map((card, index) => (
           <Link key={index} href={card.link}>
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: Math.min(index * 0.05, 0.2), duration: 0.3 }}
               whileHover={{ y: -4, scale: 1.02 }}
-              className={`bg-gradient-to-br ${card.color} p-6 text-white shadow-lg cursor-pointer group`}
+              className={`relative bg-gradient-to-br ${card.color} p-8 text-white rounded-2xl shadow-xl cursor-pointer group overflow-hidden`}
             >
-              <div className="flex items-start justify-between mb-4">
-                <card.icon size={32} className="opacity-80 group-hover:opacity-100 transition-opacity" />
-                <div className="w-2 h-2 bg-white rounded-full opacity-50"></div>
+              {/* Efeito de brilho no hover - simplificado */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              {/* Padrão decorativo - reduzido */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-12 -mt-12" />
+              
+              <div className="relative z-10">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl group-hover:bg-white/30 transition-all">
+                    <card.icon size={28} className="opacity-90 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="w-2 h-2 bg-white rounded-full opacity-60 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+                <div className="space-y-2">
+                  <p className="font-body text-xs uppercase tracking-wider opacity-90 font-medium">
+                    {card.title}
+                  </p>
+                  <p className="font-display text-4xl font-semibold leading-tight">
+                    {card.value}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-2">
-                <p className="font-body text-xs uppercase tracking-wider opacity-90">
-                  {card.title}
-                </p>
-                <p className="font-display text-3xl font-medium">
-                  {card.value}
-                </p>
-              </div>
+              
+              {/* Indicador de hover */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/30 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
             </motion.div>
           </Link>
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white p-8 shadow-sm">
-        <div className="h-1 bg-gradient-to-r from-gold-warm via-gold to-gold-warm mb-6" />
+      {/* Quick Actions - Design Moderno - Otimizado */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.3 }}
+        className="bg-white/90 rounded-2xl p-8 shadow-xl border border-beige-medium/50 relative overflow-hidden"
+      >
+        {/* Background decorativo - reduzido */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-gold-warm/5 rounded-full blur-2xl -mr-24 -mt-24" />
         
-        <h3 className="font-body text-xs uppercase tracking-wider text-brown-darkest mb-6">
-          Ações Rápidas
-        </h3>
+        <div className="relative z-10">
+          <div className="h-[2px] bg-gradient-to-r from-transparent via-gold-warm to-transparent mb-8" />
+          
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="font-display text-2xl text-brown-darkest font-light mb-2">
+                Ações Rápidas
+              </h3>
+              <p className="font-body text-sm text-brown-medium">
+                Acesso rápido às principais funcionalidades
+              </p>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link href="/admin/produtos/novo">
-            <motion.button
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full bg-gradient-to-r from-wine to-wine-dark text-white px-6 py-4 font-body text-xs uppercase tracking-[2px] flex items-center justify-center gap-2 shadow-lg"
-            >
-              <Package size={18} />
-              Novo Produto
-            </motion.button>
-          </Link>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link href="/admin/produtos/novo">
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full bg-gradient-to-r from-wine via-wine-dark to-wine text-white px-6 py-5 font-body text-sm uppercase tracking-wider flex items-center justify-center gap-3 shadow-lg rounded-xl hover:shadow-2xl transition-all group relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                <Package size={20} className="relative z-10" />
+                <span className="relative z-10 font-semibold">Novo Produto</span>
+              </motion.button>
+            </Link>
 
-          <Link href="/admin/produtos">
-            <button className="w-full border-2 border-beige-medium text-brown-medium px-6 py-4 font-body text-xs uppercase tracking-[2px] hover:border-brown-medium hover:text-brown-darkest transition-all">
-              Ver Produtos
-            </button>
-          </Link>
+            <Link href="/admin/produtos">
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full border-2 border-beige-medium bg-white text-brown-darkest px-6 py-5 font-body text-sm uppercase tracking-wider hover:border-gold-warm hover:bg-gold-warm/5 transition-all rounded-xl shadow-sm hover:shadow-md group"
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <Package size={20} className="text-brown-medium group-hover:text-gold-warm transition-colors" />
+                  <span className="font-semibold">Ver Produtos</span>
+                </div>
+              </motion.button>
+            </Link>
 
-          <Link href="/admin/pedidos">
-            <button className="w-full border-2 border-beige-medium text-brown-medium px-6 py-4 font-body text-xs uppercase tracking-[2px] hover:border-brown-medium hover:text-brown-darkest transition-all">
-              Ver Pedidos
-            </button>
-          </Link>
+            <Link href="/admin/pedidos">
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full border-2 border-beige-medium bg-white text-brown-darkest px-6 py-5 font-body text-sm uppercase tracking-wider hover:border-gold-warm hover:bg-gold-warm/5 transition-all rounded-xl shadow-sm hover:shadow-md group"
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <ShoppingBag size={20} className="text-brown-medium group-hover:text-gold-warm transition-colors" />
+                  <span className="font-semibold">Ver Pedidos</span>
+                </div>
+              </motion.button>
+            </Link>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

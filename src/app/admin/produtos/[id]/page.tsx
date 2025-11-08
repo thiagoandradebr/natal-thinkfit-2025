@@ -116,32 +116,46 @@ export default function EditProdutoPage() {
 
   return (
     <div className="max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
+      {/* Header Moderno */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8 relative"
+      >
+        <div className="absolute -top-4 -left-4 w-32 h-32 bg-gold-warm/5 rounded-full blur-2xl" />
         <Link href="/admin/produtos">
-          <button className="flex items-center gap-2 text-brown-medium hover:text-brown-darkest mb-4 font-body text-sm uppercase tracking-wider">
-            <ArrowLeft size={18} />
-            Voltar
-          </button>
+          <motion.button
+            whileHover={{ x: -4 }}
+            className="flex items-center gap-2 text-brown-medium hover:text-brown-darkest mb-6 font-body text-sm uppercase tracking-wider relative group"
+          >
+            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+            Voltar para Produtos
+          </motion.button>
         </Link>
-        <h2 className="font-display text-3xl text-brown-darkest font-light mb-2">
+        <h2 className="font-display text-4xl text-brown-darkest font-light mb-3 tracking-tight relative">
           {isNew ? 'Novo Produto' : 'Editar Produto'}
         </h2>
-        <p className="font-body text-brown-medium text-sm">
+        <p className="font-body text-brown-medium text-sm relative">
           Preencha os dados do produto
         </p>
-      </div>
+      </motion.div>
 
-      {/* Form */}
+      {/* Form Moderno */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Card Principal */}
-        <div className="bg-white p-8 shadow-sm">
-          <div className="h-1 bg-gradient-to-r from-gold-warm via-gold to-gold-warm mb-8" />
+        {/* Card Principal Moderno */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-beige-medium/50 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gold-warm/5 rounded-full blur-3xl -mr-32 -mt-32" />
+          <div className="h-[3px] bg-gradient-to-r from-gold-warm via-gold to-gold-warm mb-8 relative z-10" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
             {/* Nome */}
             <div className="md:col-span-2">
-              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-2">
+              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-3 font-semibold">
                 Nome do Produto *
               </label>
               <input
@@ -149,13 +163,13 @@ export default function EditProdutoPage() {
                 required
                 value={formData.nome}
                 onChange={(e) => handleChange('nome', e.target.value)}
-                className="w-full px-4 py-3 border border-beige-medium focus:border-gold-warm focus:outline-none font-body text-sm"
+                className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm bg-beige-lightest/50 transition-all"
               />
             </div>
 
             {/* Slug */}
             <div>
-              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-2">
+              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-3 font-semibold">
                 Slug (URL) *
               </label>
               <input
@@ -163,13 +177,13 @@ export default function EditProdutoPage() {
                 required
                 value={formData.slug}
                 onChange={(e) => handleChange('slug', e.target.value)}
-                className="w-full px-4 py-3 border border-beige-medium focus:border-gold-warm focus:outline-none font-body text-sm"
+                className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm bg-beige-lightest/50 transition-all"
               />
             </div>
 
             {/* Tamanho */}
             <div>
-              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-2">
+              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-3 font-semibold">
                 Tamanho *
               </label>
               <input
@@ -178,13 +192,13 @@ export default function EditProdutoPage() {
                 value={formData.tamanho}
                 onChange={(e) => handleChange('tamanho', e.target.value)}
                 placeholder="Ex: 22 cm"
-                className="w-full px-4 py-3 border border-beige-medium focus:border-gold-warm focus:outline-none font-body text-sm"
+                className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm bg-beige-lightest/50 transition-all"
               />
             </div>
 
             {/* Preço */}
             <div>
-              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-2">
+              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-3 font-semibold">
                 Preço (R$) *
               </label>
               <input
@@ -193,26 +207,26 @@ export default function EditProdutoPage() {
                 step="0.01"
                 value={formData.preco}
                 onChange={(e) => handleChange('preco', parseFloat(e.target.value))}
-                className="w-full px-4 py-3 border border-beige-medium focus:border-gold-warm focus:outline-none font-body text-sm"
+                className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm bg-beige-lightest/50 transition-all"
               />
             </div>
 
             {/* Estoque */}
             <div>
-              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-2">
+              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-3 font-semibold">
                 Quantidade em Estoque
               </label>
               <input
                 type="number"
                 value={formData.quantidade_estoque}
                 onChange={(e) => handleChange('quantidade_estoque', parseInt(e.target.value))}
-                className="w-full px-4 py-3 border border-beige-medium focus:border-gold-warm focus:outline-none font-body text-sm"
+                className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm bg-beige-lightest/50 transition-all"
               />
             </div>
 
             {/* Descrição Curta */}
             <div className="md:col-span-2">
-              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-2">
+              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-3 font-semibold">
                 Descrição Curta *
               </label>
               <textarea
@@ -220,13 +234,13 @@ export default function EditProdutoPage() {
                 rows={3}
                 value={formData.descricao_curta}
                 onChange={(e) => handleChange('descricao_curta', e.target.value)}
-                className="w-full px-4 py-3 border border-beige-medium focus:border-gold-warm focus:outline-none font-body text-sm resize-none"
+                className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm resize-none bg-beige-lightest/50 transition-all"
               />
             </div>
 
             {/* Descrição Longa */}
             <div className="md:col-span-2">
-              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-2">
+              <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-3 font-semibold">
                 Composição (Descrição Longa) *
               </label>
               <textarea
@@ -234,7 +248,7 @@ export default function EditProdutoPage() {
                 rows={5}
                 value={formData.descricao_longa}
                 onChange={(e) => handleChange('descricao_longa', e.target.value)}
-                className="w-full px-4 py-3 border border-beige-medium focus:border-gold-warm focus:outline-none font-body text-sm resize-none"
+                className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm resize-none bg-beige-lightest/50 transition-all"
               />
             </div>
 
@@ -275,13 +289,19 @@ export default function EditProdutoPage() {
           </div>
         </div>
 
-        {/* Fotos */}
-        <div className="bg-white p-8 shadow-sm">
+        {/* Fotos Moderno */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-beige-medium/50"
+        >
+          <div className="h-[3px] bg-gradient-to-r from-gold-warm via-gold to-gold-warm mb-6" />
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-body text-xs uppercase tracking-wider text-brown-darkest">
+            <h3 className="font-display text-xl text-brown-darkest font-light">
               Fotos do Produto
             </h3>
-            <span className="font-body text-xs text-brown-medium bg-beige-lightest px-3 py-1">
+            <span className="font-body text-xs text-brown-medium bg-gold-warm/10 text-gold-dark px-4 py-2 rounded-lg font-semibold">
               {formData.fotos.length} foto{formData.fotos.length !== 1 ? 's' : ''} adicionada{formData.fotos.length !== 1 ? 's' : ''}
             </span>
           </div>
@@ -291,28 +311,31 @@ export default function EditProdutoPage() {
             onImagesChange={handleImagesChange}
             maxImages={4}
           />
-        </div>
+        </motion.div>
 
-        {/* Actions */}
+        {/* Actions Modernas */}
         <div className="flex items-center gap-4">
           <motion.button
             type="submit"
             disabled={saving}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            className="bg-gradient-to-r from-wine to-wine-dark text-white px-8 py-4 font-body text-sm uppercase tracking-[2px] flex items-center gap-3 shadow-lg disabled:opacity-50"
+            className="bg-gradient-to-r from-wine via-wine-dark to-wine text-white px-8 py-5 font-body text-sm uppercase tracking-wider flex items-center gap-3 shadow-xl rounded-xl hover:shadow-2xl transition-all disabled:opacity-50 group relative overflow-hidden"
           >
-            <Save size={18} />
-            {saving ? 'Salvando...' : 'Salvar Produto'}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+            <Save size={20} className="relative z-10" />
+            <span className="relative z-10 font-semibold">{saving ? 'Salvando...' : 'Salvar Produto'}</span>
           </motion.button>
 
           <Link href="/admin/produtos">
-            <button
+            <motion.button
               type="button"
-              className="px-8 py-4 border-2 border-beige-medium text-brown-medium font-body text-sm uppercase tracking-[2px] hover:border-brown-medium hover:text-brown-darkest transition-all"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-8 py-5 border-2 border-beige-medium text-brown-darkest font-body text-sm uppercase tracking-wider hover:border-gold-warm hover:bg-gold-warm/5 transition-all rounded-xl shadow-sm hover:shadow-md font-semibold"
             >
               Cancelar
-            </button>
+            </motion.button>
           </Link>
         </div>
       </form>

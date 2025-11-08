@@ -139,44 +139,58 @@ export default function ConfiguracoesPage() {
 
   return (
     <div className="max-w-4xl">
-      <div className="mb-8">
-        <h1 className="font-display text-4xl text-brown-darkest mb-2">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8 relative"
+      >
+        <div className="absolute -top-4 -left-4 w-32 h-32 bg-gold-warm/5 rounded-full blur-2xl" />
+        <h1 className="font-display text-4xl text-brown-darkest mb-3 tracking-tight relative">
           Configurações do Site
         </h1>
-        <p className="font-body text-brown-medium">
+        <p className="font-body text-brown-medium relative">
           Gerencie as configurações gerais da landing page
         </p>
-      </div>
+      </motion.div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Logo */}
-        <div className="bg-white p-8 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
+        {/* Logo Moderno */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-beige-medium/50 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gold-warm/5 rounded-full blur-3xl -mr-32 -mt-32" />
+          <div className="h-[3px] bg-gradient-to-r from-gold-warm via-gold to-gold-warm mb-6 relative z-10" />
+          <div className="flex items-center justify-between mb-6 relative z-10">
             <div>
-              <h3 className="font-body text-xs uppercase tracking-wider text-brown-darkest mb-2">
+              <h3 className="font-display text-xl text-brown-darkest font-light mb-2">
                 Logo do Site
               </h3>
-              <p className="font-body text-xs text-brown-light">
+              <p className="font-body text-sm text-brown-medium">
                 Logo que aparecerá no header e footer
               </p>
             </div>
             {config.logo_url && (
-              <span className="font-body text-xs text-brown-medium bg-beige-lightest px-3 py-1">
+              <span className="font-body text-xs text-gold-dark bg-gold-warm/10 px-4 py-2 rounded-lg font-semibold">
                 Logo adicionada
               </span>
             )}
           </div>
           
-          <ImageUpload
-            images={config.logo_url ? [config.logo_url] : []}
-            onImagesChange={handleLogoChange}
-            maxImages={1}
-          />
+          <div className="relative z-10">
+            <ImageUpload
+              images={config.logo_url ? [config.logo_url] : []}
+              onImagesChange={handleLogoChange}
+              maxImages={1}
+            />
+          </div>
 
           {config.logo_url && (
-            <div className="mt-6 p-4 bg-beige-lightest border-l-4 border-gold-warm">
-              <p className="font-body text-xs text-brown-medium mb-2">Preview da Logo:</p>
-              <div className="bg-white p-4 inline-block">
+            <div className="mt-6 p-6 bg-beige-lightest/80 rounded-xl border-l-4 border-gold-warm relative z-10">
+              <p className="font-body text-xs uppercase tracking-wider text-brown-medium mb-3 font-semibold">Preview da Logo:</p>
+              <div className="bg-white p-4 rounded-lg inline-block shadow-sm">
                 <img 
                   src={config.logo_url} 
                   alt="Logo Preview" 
@@ -186,80 +200,109 @@ export default function ConfiguracoesPage() {
             </div>
           )}
 
-          <p className="mt-4 font-body text-xs text-brown-light">
+          <p className="mt-4 font-body text-xs text-brown-medium relative z-10">
             Recomendado: PNG transparente, altura mínima 200px
           </p>
-        </div>
+        </motion.div>
 
-        {/* Hero Título */}
-        <div className="bg-white p-8 shadow-sm">
-          <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-3">
+        {/* Hero Título Moderno */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-beige-medium/50 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gold-warm/5 rounded-full blur-3xl -mr-32 -mt-32" />
+          <div className="h-[3px] bg-gradient-to-r from-gold-warm via-gold to-gold-warm mb-6 relative z-10" />
+          <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-4 font-semibold relative z-10">
             Título do Hero
           </label>
           <input
             type="text"
             value={config.hero_titulo}
             onChange={(e) => setConfig(prev => ({ ...prev, hero_titulo: e.target.value }))}
-            className="w-full px-4 py-3 border border-beige-medium focus:border-gold-warm focus:outline-none font-body text-sm"
+            className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm bg-beige-lightest/50 transition-all relative z-10"
             placeholder="Um Natal saudável e sofisticado"
           />
-        </div>
+        </motion.div>
 
-        {/* Hero Subtítulo */}
-        <div className="bg-white p-8 shadow-sm">
-          <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-3">
+        {/* Hero Subtítulo Moderno */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-beige-medium/50 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gold-warm/5 rounded-full blur-3xl -mr-32 -mt-32" />
+          <div className="h-[3px] bg-gradient-to-r from-gold-warm via-gold to-gold-warm mb-6 relative z-10" />
+          <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-4 font-semibold relative z-10">
             Subtítulo do Hero
           </label>
           <textarea
             value={config.hero_subtitulo}
             onChange={(e) => setConfig(prev => ({ ...prev, hero_subtitulo: e.target.value }))}
             rows={3}
-            className="w-full px-4 py-3 border border-beige-medium focus:border-gold-warm focus:outline-none font-body text-sm resize-none"
+            className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm resize-none bg-beige-lightest/50 transition-all relative z-10"
             placeholder="Sobremesas autorais da Chef Juliana Andrade..."
           />
-        </div>
+        </motion.div>
 
-        {/* Data Limite */}
-        <div className="bg-white p-8 shadow-sm">
-          <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-3">
+        {/* Data Limite Moderno */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-beige-medium/50 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gold-warm/5 rounded-full blur-3xl -mr-32 -mt-32" />
+          <div className="h-[3px] bg-gradient-to-r from-gold-warm via-gold to-gold-warm mb-6 relative z-10" />
+          <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-4 font-semibold relative z-10">
             Data Limite de Pedidos
           </label>
           <input
             type="date"
             value={config.data_limite_pedidos}
             onChange={(e) => setConfig(prev => ({ ...prev, data_limite_pedidos: e.target.value }))}
-            className="w-full px-4 py-3 border border-beige-medium focus:border-gold-warm focus:outline-none font-body text-sm"
+            className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm bg-beige-lightest/50 transition-all relative z-10"
           />
-        </div>
+        </motion.div>
 
-        {/* Telefone WhatsApp */}
-        <div className="bg-white p-8 shadow-sm">
-          <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-3">
+        {/* Telefone WhatsApp Moderno */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-beige-medium/50 relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gold-warm/5 rounded-full blur-3xl -mr-32 -mt-32" />
+          <div className="h-[3px] bg-gradient-to-r from-gold-warm via-gold to-gold-warm mb-6 relative z-10" />
+          <label className="block font-body text-xs uppercase tracking-wider text-brown-darkest mb-4 font-semibold relative z-10">
             Telefone WhatsApp para Notificações
           </label>
           <input
             type="tel"
             value={config.telefone_whatsapp}
             onChange={(e) => setConfig(prev => ({ ...prev, telefone_whatsapp: e.target.value }))}
-            className="w-full px-4 py-3 border border-beige-medium focus:border-gold-warm focus:outline-none font-body text-sm"
+            className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm bg-beige-lightest/50 transition-all relative z-10"
             placeholder="5511999999999 (com código do país e DDD)"
           />
-          <p className="mt-2 font-body text-xs text-brown-light">
+          <p className="mt-3 font-body text-xs text-brown-medium relative z-10">
             Formato: código do país + DDD + número (ex: 5511999999999). Após finalizar pedido, será aberto WhatsApp Web com mensagem pré-preenchida.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Actions */}
+        {/* Actions Modernas */}
         <div className="flex items-center gap-4">
           <motion.button
             type="submit"
             disabled={saving}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            className="bg-gradient-to-r from-wine to-wine-dark text-white px-8 py-4 font-body text-sm uppercase tracking-[2px] flex items-center gap-3 shadow-lg disabled:opacity-50"
+            className="bg-gradient-to-r from-wine via-wine-dark to-wine text-white px-8 py-5 font-body text-sm uppercase tracking-wider flex items-center gap-3 shadow-xl rounded-xl hover:shadow-2xl transition-all disabled:opacity-50 group relative overflow-hidden"
           >
-            <Save size={18} />
-            {saving ? 'Salvando...' : 'Salvar Configurações'}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+            <Save size={20} className="relative z-10" />
+            <span className="relative z-10 font-semibold">{saving ? 'Salvando...' : 'Salvar Configurações'}</span>
           </motion.button>
         </div>
       </form>

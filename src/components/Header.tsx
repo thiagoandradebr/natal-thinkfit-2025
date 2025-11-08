@@ -15,7 +15,7 @@ export default function Header() {
   const { getItemCount, getTotal } = useCart()
   const [isScrolled, setIsScrolled] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
-  const { scrollY } = useScroll()
+  const { scrollY } = useScroll({ layoutEffect: false }) // Otimização: não usar layoutEffect
   const headerOpacity = useTransform(scrollY, [0, 100], [0.95, 1])
   const cartItemCount = getItemCount()
   const cartTotal = getTotal()
