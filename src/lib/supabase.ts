@@ -4,6 +4,26 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// Verificar se as variáveis estão configuradas (apenas uma vez no carregamento)
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  // Verificar apenas uma vez para evitar logs repetidos
+  const checkedKey = '__supabase_checked__'
+  if (!(window as any)[checkedKey]) {
+    (window as any)[checkedKey] = true
+    if (!supabaseUrl) {
+      console.error('❌ [Supabase] NEXT_PUBLIC_SUPABASE_URL não está configurada!')
+    } else {
+      console.log('✅ [Supabase] URL configurada')
+    }
+    
+    if (!supabaseAnonKey) {
+      console.error('❌ [Supabase] NEXT_PUBLIC_SUPABASE_ANON_KEY não está configurada!')
+    } else {
+      console.log('✅ [Supabase] Anon Key configurada')
+    }
+  }
+}
+
 // Criar cliente com persistência de sessão em cookies
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

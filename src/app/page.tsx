@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Leaf, Award, Clock, Shield, Plus, Minus, Star } from 'lucide-react'
+import Link from 'next/link'
 import Header from '@/components/Header'
 import Hero from '@/components/Hero'
 import ProductCard from '@/components/ProductCard'
@@ -743,6 +744,32 @@ export default function Home() {
       </section>
 
       <Footer />
+
+      {/* Link Escondido para Administração */}
+      <Link 
+        href="/admin"
+        className="fixed bottom-4 right-4 z-50 opacity-0 hover:opacity-100 transition-opacity duration-300 group"
+        style={{ 
+          opacity: 0.05,
+          fontSize: '10px',
+          color: '#8D6E63',
+          textDecoration: 'none',
+          padding: '4px 8px',
+          borderRadius: '4px',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(4px)'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.opacity = '1'
+          e.currentTarget.style.backgroundColor = 'rgba(201, 169, 97, 0.2)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.opacity = '0.05'
+          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
+        }}
+      >
+        Admin
+      </Link>
     </main>
   )
 }

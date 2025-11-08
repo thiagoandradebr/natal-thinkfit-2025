@@ -22,14 +22,22 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       // Buscar produtos
-      const { data: produtos } = await supabase
+      const { data: produtos, error: produtosError } = await supabase
         .from('produtos_natal')
         .select('*')
 
+      if (produtosError) {
+        console.error('Erro ao buscar produtos:', produtosError)
+      }
+
       // Buscar pedidos
-      const { data: pedidos } = await supabase
+      const { data: pedidos, error: pedidosError } = await supabase
         .from('pedidos_natal')
         .select('*')
+
+      if (pedidosError) {
+        console.error('Erro ao buscar pedidos:', pedidosError)
+      }
 
       const produtosDisponiveis = produtos?.filter(p => p.status === 'disponivel').length || 0
       const valorTotal = pedidos?.reduce((sum, p) => sum + (p.total || 0), 0) || 0
@@ -42,6 +50,13 @@ export default function AdminDashboard() {
       })
     } catch (error) {
       console.error('Erro ao buscar estatísticas:', error)
+      // Mesmo com erro, definir valores padrão para não travar a página
+      setStats({
+        totalProdutos: 0,
+        totalPedidos: 0,
+        produtosDisponiveis: 0,
+        valorTotal: 0,
+      })
     } finally {
       setLoading(false)
     }
