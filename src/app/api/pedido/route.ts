@@ -57,6 +57,9 @@ export async function POST(request: Request) {
       telefone_whatsapp: String(telefone).trim(),
       itens: itens.map((item: any) => ({
         produto_id: String(item.produto_id),
+        variacao_id: item.variacao_id ? String(item.variacao_id) : undefined,
+        variacao_nome: item.variacao_nome ? String(item.variacao_nome) : undefined,
+        variacao_descricao: item.variacao_descricao ? String(item.variacao_descricao) : undefined,
         nome: String(item.nome),
         preco: Number(item.preco),
         quantidade: Number(item.quantidade),
@@ -113,9 +116,12 @@ export async function POST(request: Request) {
     // Gerar mensagem para WhatsApp
     let whatsappUrl = null
     if (configMap?.telefone_whatsapp) {
-      const itensTexto = pedido.itens.map((item: any) => 
-        `• ${item.nome} - ${item.quantidade}x - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco * item.quantidade)}`
-      ).join('\n')
+      const itensTexto = pedido.itens.map((item: any) => {
+        const variacaoInfo = item.variacao_nome 
+          ? ` (${item.variacao_nome}${item.variacao_descricao ? ` - ${item.variacao_descricao}` : ''})`
+          : ''
+        return `• ${item.nome}${variacaoInfo} - ${item.quantidade}x - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco * item.quantidade)}`
+      }).join('\n')
       
       const mensagem = `🎄 *NOVO PEDIDO - ThinkFit Natal 2025* 🎄
 

@@ -10,6 +10,21 @@
     font-size: 14px;
     font-weight: 300;
     line-height: 1.7;
+    /* Otimizações para mobile */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Otimizações de touch para mobile */
+  button, a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Melhor performance de scroll em mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Sistema Tipográfico Consistente */

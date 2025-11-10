@@ -1,6 +1,19 @@
 // Tipos do banco de dados Supabase
 // NOTA: Usando tabelas produtos_natal e pedidos_natal para não conflitar com o SaaS ThinkFit
 
+export interface VariacaoProduto {
+  id: string
+  produto_id: string
+  nome_variacao: string
+  descricao?: string
+  preco: number
+  is_default: boolean
+  ordem_exibicao: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 export interface Produto {
   id: string
   nome: string
@@ -16,11 +29,15 @@ export interface Produto {
   quantidade_estoque?: number
   created_at: string
   updated_at: string
+  variacoes?: VariacaoProduto[] // Variações do produto (opcional, carregado separadamente)
 }
 
 export interface ItemPedido {
   produto_id: string
+  variacao_id?: string // ID da variação selecionada (opcional para compatibilidade)
   nome: string
+  variacao_nome?: string // Nome da variação (snapshot)
+  variacao_descricao?: string // Descrição da variação (snapshot)
   preco: number
   quantidade: number
   observacao?: string

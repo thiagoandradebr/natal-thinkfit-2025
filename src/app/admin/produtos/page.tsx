@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Edit, Trash2, Search, Star, Package } from 'lucide-react'
+import { Plus, Edit, Trash2, Search, Star, Package, ChevronUp, ChevronDown } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Produto } from '@/types/database'
 import Link from 'next/link'
@@ -11,6 +11,7 @@ export default function ProdutosPage() {
   const [produtos, setProdutos] = useState<Produto[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [reordering, setReordering] = useState<string | null>(null)
 
   useEffect(() => {
     fetchProdutos()
@@ -22,6 +23,7 @@ export default function ProdutosPage() {
       const { data, error } = await supabase
         .from('produtos_natal')
         .select('id, nome, slug, descricao_curta, descricao_longa, preco, tamanho, status, destaque, created_at, updated_at, ordem, fotos')
+        .order('ordem', { ascending: true })
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -49,6 +51,104 @@ export default function ProdutosPage() {
     } catch (error) {
       console.error('Erro ao excluir produto:', error)
       alert('Erro ao excluir produto')
+    }
+  }
+
+  const handleMoveUp = async (produtoId: string) => {
+    // Encontrar o produto na lista completa (não filtrada)
+    const produtoIndex = produtos.findIndex(p => p.id === produtoId)
+    if (produtoIndex === 0) return // Já está no topo
+
+    const produto = produtos[produtoIndex]
+    const produtoAnterior = produtos[produtoIndex - 1]
+
+    setReordering(produtoId)
+
+    try {
+      // Usar uma estratégia mais robusta: reordenar todos os produtos
+      // Criar nova lista com as ordens atualizadas
+      const novosProdutos = [...produtos]
+      
+      // Trocar posições na lista
+      const temp = novosProdutos[produtoIndex]
+      novosProdutos[produtoIndex] = novosProdutos[produtoIndex - 1]
+      novosProdutos[produtoIndex - 1] = temp
+
+      // Atualizar ordens sequencialmente (0, 1, 2, 3...)
+      const updates = novosProdutos.map((p, index) => ({
+        id: p.id,
+        ordem: index
+      }))
+
+      // Atualizar todos os produtos de uma vez
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('produtos_natal')
+          .update({ ordem: update.ordem, updated_at: new Date().toISOString() })
+          .eq('id', update.id)
+
+        if (error) {
+          console.error(`Erro ao atualizar produto ${update.id}:`, error)
+          throw error
+        }
+      }
+
+      // Recarregar produtos
+      await fetchProdutos()
+    } catch (error: any) {
+      console.error('Erro ao mover produto:', error)
+      alert(`Erro ao reordenar produto: ${error.message || 'Erro desconhecido'}`)
+    } finally {
+      setReordering(null)
+    }
+  }
+
+  const handleMoveDown = async (produtoId: string) => {
+    // Encontrar o produto na lista completa (não filtrada)
+    const produtoIndex = produtos.findIndex(p => p.id === produtoId)
+    if (produtoIndex === produtos.length - 1) return // Já está no final
+
+    const produto = produtos[produtoIndex]
+    const proximoProduto = produtos[produtoIndex + 1]
+
+    setReordering(produtoId)
+
+    try {
+      // Usar uma estratégia mais robusta: reordenar todos os produtos
+      // Criar nova lista com as ordens atualizadas
+      const novosProdutos = [...produtos]
+      
+      // Trocar posições na lista
+      const temp = novosProdutos[produtoIndex]
+      novosProdutos[produtoIndex] = novosProdutos[produtoIndex + 1]
+      novosProdutos[produtoIndex + 1] = temp
+
+      // Atualizar ordens sequencialmente (0, 1, 2, 3...)
+      const updates = novosProdutos.map((p, index) => ({
+        id: p.id,
+        ordem: index
+      }))
+
+      // Atualizar todos os produtos de uma vez
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('produtos_natal')
+          .update({ ordem: update.ordem, updated_at: new Date().toISOString() })
+          .eq('id', update.id)
+
+        if (error) {
+          console.error(`Erro ao atualizar produto ${update.id}:`, error)
+          throw error
+        }
+      }
+
+      // Recarregar produtos
+      await fetchProdutos()
+    } catch (error: any) {
+      console.error('Erro ao mover produto:', error)
+      alert(`Erro ao reordenar produto: ${error.message || 'Erro desconhecido'}`)
+    } finally {
+      setReordering(null)
     }
   }
 
@@ -173,9 +273,51 @@ export default function ProdutosPage() {
             {/* Content */}
             <div className="p-6">
               <div className="flex items-start justify-between gap-2 mb-3">
-                <h3 className="font-display text-xl text-brown-darkest flex-1 leading-tight">
-                  {produto.nome}
-                </h3>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  {/* Botões de Ordenação */}
+                  {!searchTerm && (
+                    <div className="flex flex-col gap-0.5 flex-shrink-0">
+                      <motion.button
+                        onClick={() => handleMoveUp(produto.id)}
+                        disabled={
+                          produtos.findIndex(p => p.id === produto.id) === 0 || 
+                          reordering === produto.id
+                        }
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="p-1 text-brown-medium hover:text-gold-warm disabled:text-beige-medium disabled:cursor-not-allowed transition-colors relative"
+                        title="Mover para cima"
+                      >
+                        {reordering === produto.id ? (
+                          <div className="w-4 h-4 border-2 border-gold-warm border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <ChevronUp size={16} />
+                        )}
+                      </motion.button>
+                      <motion.button
+                        onClick={() => handleMoveDown(produto.id)}
+                        disabled={
+                          produtos.findIndex(p => p.id === produto.id) === produtos.length - 1 || 
+                          reordering === produto.id
+                        }
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="p-1 text-brown-medium hover:text-gold-warm disabled:text-beige-medium disabled:cursor-not-allowed transition-colors relative"
+                        title="Mover para baixo"
+                      >
+                        {reordering === produto.id ? (
+                          <div className="w-4 h-4 border-2 border-gold-warm border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <ChevronDown size={16} />
+                        )}
+                      </motion.button>
+                    </div>
+                  )}
+                  
+                  <h3 className="font-display text-xl text-brown-darkest flex-1 leading-tight">
+                    {produto.nome}
+                  </h3>
+                </div>
                 {produto.destaque && (
                   <div className="flex-shrink-0 p-1.5 bg-gold-warm/10 rounded-lg">
                     <Star size={18} className="text-gold-warm fill-gold-warm" />

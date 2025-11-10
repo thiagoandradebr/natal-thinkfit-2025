@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
-import { Produto, ItemPedido } from '@/types/database'
+import { Produto, ItemPedido, VariacaoProduto } from '@/types/database'
 import { storage, STORAGE_KEYS } from '@/lib/storage'
 
 // Callback para notificação externa
@@ -13,13 +13,16 @@ export const setCartNotificationCallback = (callback: (message: string) => void)
 
 interface CartItem extends ItemPedido {
   produto: Produto
+  variacao_id?: string
+  variacao_nome?: string
+  variacao_descricao?: string
 }
 
 interface CartContextType {
   cart: CartItem[]
-  addToCart: (produto: Produto) => void
-  removeFromCart: (produtoId: string) => void
-  updateQuantity: (produtoId: string, delta: number) => void
+  addToCart: (produto: Produto & { variacao_selecionada?: VariacaoProduto }) => void
+  removeFromCart: (produtoId: string, variacaoId?: string) => void
+  updateQuantity: (produtoId: string, delta: number, variacaoId?: string) => void
   clearCart: () => void
   getTotal: () => number
   getItemCount: () => number
@@ -58,31 +61,45 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [cart])
 
-  const addToCart = useCallback((produto: Produto) => {
+  const addToCart = useCallback((produto: Produto & { variacao_selecionada?: VariacaoProduto }) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.produto_id === produto.id)
+      const variacaoId = produto.variacao_selecionada?.id
+      const preco = produto.variacao_selecionada?.preco || produto.preco
+      
+      // Buscar item existente (mesmo produto e mesma variação)
+      const existingItem = prevCart.find((item) => 
+        item.produto_id === produto.id && 
+        item.variacao_id === variacaoId
+      )
       
       if (existingItem) {
         // Notificar que quantidade foi aumentada
         if (notifyCallback) {
-          notifyCallback(`${produto.nome} adicionado novamente ao carrinho!`)
+          const variacaoNome = produto.variacao_selecionada?.nome_variacao
+          const nomeCompleto = variacaoNome ? `${produto.nome} (${variacaoNome})` : produto.nome
+          notifyCallback(`${nomeCompleto} adicionado novamente ao carrinho!`)
         }
         return prevCart.map((item) =>
-          item.produto_id === produto.id
+          item.produto_id === produto.id && item.variacao_id === variacaoId
             ? { ...item, quantidade: item.quantidade + 1 }
             : item
         )
       } else {
         // Notificar que produto foi adicionado
         if (notifyCallback) {
-          notifyCallback(`${produto.nome} adicionado ao carrinho! 🎄`)
+          const variacaoNome = produto.variacao_selecionada?.nome_variacao
+          const nomeCompleto = variacaoNome ? `${produto.nome} (${variacaoNome})` : produto.nome
+          notifyCallback(`${nomeCompleto} adicionado ao carrinho! 🎄`)
         }
         return [
           ...prevCart,
           {
             produto_id: produto.id,
+            variacao_id: variacaoId,
+            variacao_nome: produto.variacao_selecionada?.nome_variacao,
+            variacao_descricao: produto.variacao_selecionada?.descricao,
             nome: produto.nome,
-            preco: produto.preco,
+            preco: preco,
             quantidade: 1,
             produto,
           },
@@ -91,15 +108,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  const removeFromCart = (produtoId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.produto_id !== produtoId))
+  const removeFromCart = (produtoId: string, variacaoId?: string) => {
+    setCart((prevCart) => 
+      prevCart.filter((item) => 
+        !(item.produto_id === produtoId && (variacaoId === undefined || item.variacao_id === variacaoId))
+      )
+    )
   }
 
-  const updateQuantity = (produtoId: string, delta: number) => {
+  const updateQuantity = (produtoId: string, delta: number, variacaoId?: string) => {
     setCart((prevCart) =>
       prevCart
         .map((item) =>
-          item.produto_id === produtoId
+          item.produto_id === produtoId && (variacaoId === undefined || item.variacao_id === variacaoId)
             ? { ...item, quantidade: Math.max(0, item.quantidade + delta) }
             : item
         )

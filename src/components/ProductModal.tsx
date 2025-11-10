@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, ShoppingBag, Star, Sparkles } from 'lucide-react'
-import { Produto } from '@/types/database'
+import { Produto, VariacaoProduto } from '@/types/database'
 import { useCart } from '@/contexts/CartContext'
+import { supabase } from '@/lib/supabase'
+import ProductVariantSelector from './ProductVariantSelector'
 
 interface ProductModalProps {
   produto: Produto
@@ -14,6 +16,9 @@ interface ProductModalProps {
 export default function ProductModal({ produto, onClose }: ProductModalProps) {
   const { addToCart } = useCart()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [variants, setVariants] = useState<VariacaoProduto[]>([])
+  const [selectedVariant, setSelectedVariant] = useState<VariacaoProduto | null>(null)
+  const [loadingVariants, setLoadingVariants] = useState(true)
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -30,8 +35,47 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
     setCurrentImageIndex((prev) => (prev - 1 + produto.fotos.length) % produto.fotos.length)
   }
 
+  // Carregar variações do produto
+  useEffect(() => {
+    const loadVariants = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('variacoes_produtos_natal')
+          .select('*')
+          .eq('produto_id', produto.id)
+          .eq('is_active', true)
+          .order('ordem_exibicao', { ascending: true })
+          .order('created_at', { ascending: true })
+
+        if (error) throw error
+        
+        if (data && data.length > 0) {
+          setVariants(data)
+          // Selecionar variação padrão ou primeira
+          const defaultVariant = data.find(v => v.is_default) || data[0]
+          setSelectedVariant(defaultVariant)
+        } else {
+          setSelectedVariant(null)
+        }
+      } catch (error) {
+        console.error('Erro ao carregar variações:', error)
+        setSelectedVariant(null)
+      } finally {
+        setLoadingVariants(false)
+      }
+    }
+
+    loadVariants()
+  }, [produto.id])
+
   const handleAddToCart = () => {
-    addToCart(produto)
+    // Criar produto com variação para o carrinho
+    const produtoComVariacao = {
+      ...produto,
+      preco: selectedVariant?.preco || produto.preco,
+      variacao_selecionada: selectedVariant
+    }
+    addToCart(produtoComVariacao)
     onClose()
   }
 
@@ -177,7 +221,14 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
               >
                 {produto.nome}
               </motion.h2>
-              <p className="font-body text-taupe text-sm uppercase tracking-wider mb-6">{produto.tamanho}</p>
+              {!loadingVariants && selectedVariant ? (
+                <p className="font-body text-taupe text-sm uppercase tracking-wider mb-6">
+                  {selectedVariant.nome_variacao}
+                  {selectedVariant.descricao && ` - ${selectedVariant.descricao}`}
+                </p>
+              ) : (
+                <p className="font-body text-taupe text-sm uppercase tracking-wider mb-6">{produto.tamanho}</p>
+              )}
 
               {/* Linha decorativa */}
               <div className="h-[1px] w-16 bg-gold-warm mb-6" />
@@ -203,11 +254,23 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
                 ))}
               </div>
 
+              {/* Seletor de Variações */}
+              {!loadingVariants && variants.length > 1 && (
+                <div className="mb-6">
+                  <ProductVariantSelector
+                    variants={variants}
+                    onSelect={setSelectedVariant}
+                    selectedVariantId={selectedVariant?.id}
+                    isMobile={false}
+                  />
+                </div>
+              )}
+
               {/* Preço */}
               <div className="mb-8">
                 <div className="font-body text-brown-light text-[10px] uppercase tracking-wider mb-2">Valor</div>
                 <span className="font-display text-gold-dark font-medium" style={{ fontSize: '42px', letterSpacing: '-0.5px' }}>
-                  {formatPrice(produto.preco)}
+                  {formatPrice(selectedVariant?.preco || produto.preco)}
                 </span>
               </div>
 

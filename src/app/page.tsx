@@ -15,6 +15,22 @@ import { supabase } from '@/lib/supabase'
 import { Produto } from '@/types/database'
 import { getLastSection } from '@/lib/storage'
 
+// Hook para detectar mobile
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  return isMobile
+}
+
 // Componente FAQ Item com Tema Natalino
 function FAQItem({ question, answer, index }: { question: string; answer: string; index: number }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -127,6 +143,7 @@ export default function Home() {
   const [produtos, setProdutos] = useState<Produto[]>([])
   const [loading, setLoading] = useState(true)
   const [configuracoes, setConfiguracoes] = useState<any>({})
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     loadData()
@@ -215,8 +232,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative">
-      {/* Ornamentos Natalinos Animados */}
-      <ChristmasOrnaments />
+      {/* Ornamentos Natalinos Animados - Desabilitado em mobile para performance */}
+      {!isMobile && <ChristmasOrnaments />}
       
       <Header />
       <Hero 
@@ -234,8 +251,8 @@ export default function Home() {
         className="relative overflow-hidden"
         style={{ 
           backgroundColor: '#F8F6F3',
-          paddingTop: '120px', 
-          paddingBottom: '120px',
+          paddingTop: isMobile ? '80px' : '120px', 
+          paddingBottom: isMobile ? '80px' : '120px',
           position: 'relative' // Adicionado para framer-motion
         }}
       >
@@ -263,13 +280,16 @@ export default function Home() {
           </svg>
         </div>
 
-        {/* Elementos Decorativos Flutuantes */}
+        {/* Elementos Decorativos Flutuantes - Reduzidos em mobile */}
         {(() => {
           const prefersReducedMotion = typeof window !== 'undefined' 
             ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
             : false
           
-          return Array.from({ length: 35 }).map((_, i) => {
+          // Reduzir elementos em mobile: 35 -> 12
+          const decorCount = isMobile ? 12 : 35
+          
+          return Array.from({ length: decorCount }).map((_, i) => {
             const left = `${(i * 47) % 100}%`
             const top = `${(i * 31) % 100}%`
             const opacity = 0.05 + (i % 3) * 0.03
@@ -331,7 +351,7 @@ export default function Home() {
           })
         })()}
 
-        <div className="container mx-auto px-6 md:px-12 lg:px-20 relative z-10" style={{ maxWidth: '1400px' }}>
+        <div className="container mx-auto px-4 sm:px-6 md:px-12 lg:px-20 relative z-10" style={{ maxWidth: '1400px' }}>
           {/* Título e Subtítulo */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -342,27 +362,28 @@ export default function Home() {
           >
             <h2 
               className="font-display font-light text-[#3E2723] mb-4"
-              style={{ fontSize: '48px' }}
+              style={{ fontSize: isMobile ? '32px' : '48px' }}
             >
               Cardápio de Natal 2025
             </h2>
             <p 
               className="font-body font-light text-[#8D6E63]"
               style={{ 
-                fontSize: '15px', 
+                fontSize: isMobile ? '14px' : '15px', 
                 letterSpacing: '0.5px',
-                marginBottom: '80px'
+                marginBottom: isMobile ? '40px' : '80px',
+                padding: isMobile ? '0 16px' : '0'
               }}
             >
               Sobremesas autorais da Chef Juliana Andrade — produção limitada
             </p>
           </motion.div>
 
-          {/* Grid de Produtos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+          {/* Grid de Produtos - Otimizado para mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
             style={{
-              gap: '40px',
-              rowGap: '60px'
+              gap: isMobile ? '24px' : '40px',
+              rowGap: isMobile ? '32px' : '60px'
             }}
           >
             {produtos.map((produto, index) => (
@@ -379,7 +400,7 @@ export default function Home() {
       </section>
 
       {/* Seção Diferenciais - Moderno e Fluido */}
-      <section id="diferenciais" className="relative bg-gradient-to-b from-off-white to-beige-lightest overflow-hidden" style={{ padding: '120px 0', position: 'relative' }}>
+      <section id="diferenciais" className="relative bg-gradient-to-b from-off-white to-beige-lightest overflow-hidden" style={{ padding: isMobile ? '60px 0' : '120px 0', position: 'relative' }}>
         {/* Ornamento decorativo de fundo */}
         <div className="absolute top-20 right-0 w-96 h-96 border border-sage opacity-5 rounded-full" />
         <div className="absolute bottom-20 left-0 w-64 h-64 border border-gold-warm opacity-5 rounded-full" />
@@ -390,7 +411,10 @@ export default function Home() {
             ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
             : false
           
-          return Array.from({ length: 20 }).map((_, i) => {
+          // Reduzir elementos em mobile: 20 -> 8
+          const decorCount = isMobile ? 8 : 20
+          
+          return Array.from({ length: decorCount }).map((_, i) => {
             const left = `${(i * 53) % 100}%`
             const top = `${(i * 37) % 100}%`
             const opacity = 0.12 + (i % 3) * 0.05
@@ -452,14 +476,15 @@ export default function Home() {
           })
         })()}
 
-        <div className="container mx-auto px-6 md:px-12 lg:px-20 relative z-10" style={{ maxWidth: '1400px' }}>
+        <div className="container mx-auto px-4 sm:px-6 md:px-12 lg:px-20 relative z-10" style={{ maxWidth: '1400px' }}>
           {/* Título com ornamentos */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-24"
+            className="text-center"
+            style={{ marginBottom: isMobile ? '40px' : '96px' }}
           >
             {/* Ornamento superior */}
             <div className="flex items-center justify-center gap-4 mb-6">
@@ -468,17 +493,17 @@ export default function Home() {
               <div className="h-[1px] w-16 bg-gold-warm" />
             </div>
 
-            <h2 className="font-display font-light text-brown-darkest mb-4" style={{ fontSize: '48px', letterSpacing: '-0.5px' }}>
+            <h2 className="font-display font-light text-brown-darkest mb-4" style={{ fontSize: isMobile ? '28px' : '48px', letterSpacing: '-0.5px' }}>
               Por Que Escolher ThinkFit?
             </h2>
             
-            <p className="font-body text-brown-medium text-base max-w-2xl mx-auto">
+            <p className="font-body text-brown-medium max-w-2xl mx-auto" style={{ fontSize: isMobile ? '14px' : '16px', padding: isMobile ? '0 16px' : '0' }}>
               Celebre o Natal com sobremesas que unem <span className="text-gold-dark font-medium">sabor excepcional</span> e <span className="text-gold-dark font-medium">saúde</span>
             </p>
           </motion.div>
 
-          {/* Grid 4 Colunas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          {/* Grid 4 Colunas - Responsivo para mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
             {/* Benefício 1 */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -596,14 +621,14 @@ export default function Home() {
         className="relative overflow-hidden"
         style={{ 
           background: 'linear-gradient(to bottom, #FAFAF8, #F5F1E8)',
-          padding: '120px 0',
+          padding: isMobile ? '60px 0' : '120px 0',
           position: 'relative' // Adicionado para framer-motion
         }}
       >
         {/* Decorações Natalinas de Fundo */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Estrelas flutuantes - Reduzido para melhor performance */}
-          {Array.from({ length: 12 }).map((_, i) => (
+          {/* Estrelas flutuantes - Reduzido para melhor performance em mobile */}
+          {Array.from({ length: isMobile ? 6 : 12 }).map((_, i) => (
             <motion.div
               key={i}
               className="absolute"
@@ -629,8 +654,8 @@ export default function Home() {
             </motion.div>
           ))}
           
-          {/* Flocos de neve - Reduzido para melhor performance */}
-          {Array.from({ length: 8 }).map((_, i) => (
+          {/* Flocos de neve - Reduzido para melhor performance em mobile */}
+          {Array.from({ length: isMobile ? 4 : 8 }).map((_, i) => (
             <motion.div
               key={`snow-${i}`}
               className="absolute text-white/5"
@@ -656,14 +681,15 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="container mx-auto px-6 md:px-12 lg:px-20 relative z-10" style={{ maxWidth: '900px' }}>
+        <div className="container mx-auto px-4 sm:px-6 md:px-12 lg:px-20 relative z-10" style={{ maxWidth: '900px' }}>
           {/* Header com Tema Natalino */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center"
+            style={{ marginBottom: isMobile ? '32px' : '64px' }}
           >
             {/* Badge decorativo */}
             <motion.div
@@ -692,7 +718,7 @@ export default function Home() {
             {/* Título Principal */}
             <h2 
               className="font-display font-light text-[#3E2723] mb-4 relative"
-              style={{ fontSize: '48px', lineHeight: 1.2 }}
+              style={{ fontSize: isMobile ? '28px' : '48px', lineHeight: 1.2 }}
             >
               <span className="relative inline-block">
                 Perguntas Frequentes
@@ -714,7 +740,7 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ delay: 0.4, duration: 0.6 }}
               className="font-body text-[#8D6E63] mt-4"
-              style={{ fontSize: '16px' }}
+              style={{ fontSize: isMobile ? '14px' : '16px', padding: isMobile ? '0 16px' : '0' }}
             >
               Tire suas dúvidas sobre nossos produtos e processo de encomenda
             </motion.p>
@@ -729,11 +755,11 @@ export default function Home() {
               },
               {
                 q: 'Como funciona a entrega?',
-                a: 'Após a confirmação do pedido e pagamento, entraremos em contato para combinar a melhor forma de entrega ou retirada.',
+                a: 'Após a confirmação do pedido entraremos em contato por WhatsApp para combinar a melhor forma de entrega ou retirada. Teremos entregas nos dias 24/12 e 30/12.',
               },
               {
                 q: 'Qual a forma de pagamento?',
-                a: 'Aceitamos Pix, transferência bancária e cartão de crédito. As instruções serão enviadas após o pedido.',
+                a: 'Aceitamos Pix e Link de pagamento para cartão de crédito.',
               },
               {
                 q: 'Posso fazer encomendas personalizadas?',

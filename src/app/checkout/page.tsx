@@ -76,6 +76,9 @@ export default function CheckoutPage() {
           data_entrega: formData.dataEntrega,
           itens: cart.map(({ produto, ...item }) => ({
             produto_id: item.produto_id,
+            variacao_id: item.variacao_id,
+            variacao_nome: item.variacao_nome,
+            variacao_descricao: item.variacao_descricao,
             nome: item.nome,
             preco: Number(item.preco),
             quantidade: Number(item.quantidade),
@@ -511,7 +514,7 @@ export default function CheckoutPage() {
                 
                 <div className="space-y-4 mb-6">
                   {cart.map((item) => (
-                    <div key={item.produto_id} className="flex items-center justify-between p-4 bg-[#FAFAF8] border border-[#E0DED9] hover:border-gold-warm/50 transition-colors relative group">
+                    <div key={`${item.produto_id}-${item.variacao_id || 'default'}`} className="flex items-center justify-between p-4 bg-[#FAFAF8] border border-[#E0DED9] hover:border-gold-warm/50 transition-colors relative group">
                       {/* Decoração sutil */}
                       <div className="absolute -left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition-opacity">
                         <Star size={8} className="text-gold-warm" fill="currentColor" />
@@ -519,14 +522,24 @@ export default function CheckoutPage() {
                       <div className="flex-1">
                         <p className="font-body text-[#3E2723] font-medium" style={{ fontSize: '14px' }}>
                           {item.nome}
+                          {item.variacao_nome && (
+                            <span className="text-[#8D6E63] font-normal ml-2">
+                              ({item.variacao_nome})
+                            </span>
+                          )}
                         </p>
+                        {item.variacao_descricao && (
+                          <p className="font-body text-[#8D6E63] italic" style={{ fontSize: '11px', marginTop: '2px' }}>
+                            {item.variacao_descricao}
+                          </p>
+                        )}
                         <p className="font-body text-[#8D6E63]" style={{ fontSize: '12px' }}>
                           {formatPrice(item.preco)} cada
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={() => updateQuantity(item.produto_id, -1)}
+                          onClick={() => updateQuantity(item.produto_id, -1, item.variacao_id)}
                           className="text-[#6D4C41] hover:text-[#3E2723] transition-colors"
                         >
                           <Minus size={16} strokeWidth={1.5} />
@@ -535,13 +548,13 @@ export default function CheckoutPage() {
                           {item.quantidade}
                         </span>
                         <button
-                          onClick={() => updateQuantity(item.produto_id, 1)}
+                          onClick={() => updateQuantity(item.produto_id, 1, item.variacao_id)}
                           className="text-[#6D4C41] hover:text-[#3E2723] transition-colors"
                         >
                           <Plus size={16} strokeWidth={1.5} />
                         </button>
                         <button
-                          onClick={() => removeFromCart(item.produto_id)}
+                          onClick={() => removeFromCart(item.produto_id, item.variacao_id)}
                           className="text-[#A1887F] hover:text-[#8D6E63] ml-2 transition-colors"
                         >
                           <Trash2 size={16} strokeWidth={1.5} />

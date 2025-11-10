@@ -40,6 +40,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
       </head>
       <body>
         <AuthProvider>

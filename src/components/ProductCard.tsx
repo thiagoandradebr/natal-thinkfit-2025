@@ -3,9 +3,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { ShoppingBag, Star, Sparkles, Eye, Check, MilkOff, Droplet } from 'lucide-react'
-import { Produto } from '@/types/database'
+import { Produto, VariacaoProduto } from '@/types/database'
 import { useCart } from '@/contexts/CartContext'
 import ProductModal from './ProductModal'
+import ProductVariantSelector from './ProductVariantSelector'
+import { supabase } from '@/lib/supabase'
 
 interface ProductCardProps {
   produto: Produto
@@ -18,6 +20,9 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isInView, setIsInView] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [variants, setVariants] = useState<VariacaoProduto[]>([])
+  const [selectedVariant, setSelectedVariant] = useState<VariacaoProduto | null>(null)
+  const [loadingVariants, setLoadingVariants] = useState(true)
   const cardRef = useRef<HTMLDivElement>(null)
 
   const formatPrice = (price: number) => {
@@ -41,6 +46,39 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  // Carregar variações do produto
+  useEffect(() => {
+    const loadVariants = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('variacoes_produtos_natal')
+          .select('*')
+          .eq('produto_id', produto.id)
+          .eq('is_active', true)
+          .order('ordem_exibicao', { ascending: true })
+          .order('created_at', { ascending: true })
+
+        if (error) throw error
+        
+        if (data && data.length > 0) {
+          setVariants(data)
+          // Selecionar variação padrão ou primeira
+          const defaultVariant = data.find(v => v.is_default) || data[0]
+          setSelectedVariant(defaultVariant)
+        } else {
+          setSelectedVariant(null)
+        }
+      } catch (error) {
+        console.error('Erro ao carregar variações:', error)
+        setSelectedVariant(null)
+      } finally {
+        setLoadingVariants(false)
+      }
+    }
+
+    loadVariants()
+  }, [produto.id])
 
   // Intersection Observer para efeito de entrada
   useEffect(() => {
@@ -117,8 +155,10 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
               transition: 'transform 0.5s ease'
             }}
             animate={{ 
-              scale: isHovered ? 1.08 : 1 
+              scale: isHovered && !isMobile ? 1.08 : 1 
             }}
+            loading="lazy"
+            decoding="async"
           />
           
           {/* Badge "DESTAQUE" no canto superior esquerdo */}
@@ -147,29 +187,33 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
             </div>
           )}
 
-          {/* Overlay escuro no hover */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'rgba(0, 0, 0, 0.2)'
-            }}
-          />
+          {/* Overlay escuro no hover - Desabilitado em mobile */}
+          {!isMobile && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isHovered ? 1 : 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'rgba(0, 0, 0, 0.2)'
+              }}
+            />
+          )}
           
-          {/* Ícone de olho centralizado no hover */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ 
-              opacity: isHovered ? 1 : 0,
-              scale: isHovered ? 1 : 0.8
-            }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
-          >
-            <Eye size={48} className="text-white" strokeWidth={1.5} />
-          </motion.div>
+          {/* Ícone de olho centralizado no hover - Desabilitado em mobile */}
+          {!isMobile && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ 
+                opacity: isHovered ? 1 : 0,
+                scale: isHovered ? 1 : 0.8
+              }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+            >
+              <Eye size={48} className="text-white" strokeWidth={1.5} />
+            </motion.div>
+          )}
           
           {/* Badge de Esgotado */}
           {produto.status === 'esgotado' && (
@@ -181,8 +225,8 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
           )}
         </div>
 
-        {/* Conteúdo com padding */}
-        <div style={{ padding: '24px' }}>
+        {/* Conteúdo com padding - Otimizado para mobile */}
+        <div style={{ padding: isMobile ? '20px' : '24px' }}>
           {/* Tamanho/Tipo (label pequeno) */}
           <motion.p 
             initial={{ opacity: 0 }}
@@ -209,14 +253,14 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
             className="font-display transition-colors cursor-pointer"
             style={{ 
               fontFamily: 'Georgia, "Playfair Display", serif',
-              fontSize: '26px',
+              fontSize: isMobile ? '22px' : '26px',
               fontWeight: 600,
               color: '#2d2d2d',
               lineHeight: 1.3,
               marginBottom: '12px'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#C9A961'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#2d2d2d'}
+            onMouseEnter={(e) => !isMobile && (e.currentTarget.style.color = '#C9A961')}
+            onMouseLeave={(e) => !isMobile && (e.currentTarget.style.color = '#2d2d2d')}
             onClick={() => setShowModal(true)}
           >
             {produto.nome}
@@ -236,7 +280,7 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
           <p 
             className="font-body line-clamp-2"
             style={{ 
-              fontSize: '15px',
+              fontSize: isMobile ? '14px' : '15px',
               lineHeight: 1.6,
               color: '#666666',
               marginBottom: '16px',
@@ -322,28 +366,80 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
             })}
           </div>
 
+          {/* Seletor de Variações */}
+          {!loadingVariants && variants.length > 1 && (
+            <div className="mt-3 pt-3 border-t border-beige-medium">
+              <ProductVariantSelector
+                variants={variants}
+                onSelect={setSelectedVariant}
+                selectedVariantId={selectedVariant?.id}
+                isMobile={isMobile}
+              />
+            </div>
+          )}
+
           {/* Preço e CTA em linha */}
           <div className="flex items-end justify-between pt-4 border-t border-beige-medium">
             <div>
-              <div className="font-body text-[10px] text-brown-light mb-1 uppercase tracking-wider">
-                A partir de
-              </div>
-              <span 
-                className="font-display font-medium text-gold-dark"
-                style={{ fontSize: '32px', letterSpacing: '-0.5px' }}
-              >
-                {formatPrice(produto.preco)}
-              </span>
+              {!loadingVariants && variants.length > 1 ? (
+                <>
+                  <div className="font-body text-[10px] text-brown-light mb-1 uppercase tracking-wider">
+                    {selectedVariant?.nome_variacao || 'Preço'}
+                  </div>
+                  <span 
+                    className="font-display font-medium text-gold-dark"
+                    style={{ fontSize: isMobile ? '28px' : '32px', letterSpacing: '-0.5px' }}
+                  >
+                    {formatPrice(selectedVariant?.preco || produto.preco)}
+                  </span>
+                </>
+              ) : !loadingVariants && variants.length === 1 ? (
+                <>
+                  <div className="font-body text-[10px] text-brown-light mb-1 uppercase tracking-wider">
+                    {selectedVariant?.nome_variacao || 'Preço'}
+                  </div>
+                  <span 
+                    className="font-display font-medium text-gold-dark"
+                    style={{ fontSize: isMobile ? '28px' : '32px', letterSpacing: '-0.5px' }}
+                  >
+                    {formatPrice(selectedVariant?.preco || produto.preco)}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="font-body text-[10px] text-brown-light mb-1 uppercase tracking-wider">
+                    A partir de
+                  </div>
+                  <span 
+                    className="font-display font-medium text-gold-dark"
+                    style={{ fontSize: isMobile ? '28px' : '32px', letterSpacing: '-0.5px' }}
+                  >
+                    {formatPrice(produto.preco)}
+                  </span>
+                </>
+              )}
             </div>
 
-            {/* Botão Compacto */}
+            {/* Botão Compacto - Otimizado para touch */}
             {produto.status === 'disponivel' ? (
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={!isMobile ? { scale: 1.05 } : {}}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => addToCart(produto)}
-                className="bg-wine text-white px-6 py-3 font-body text-xs uppercase tracking-wider hover:bg-wine-dark flex items-center gap-2 transition-colors"
-                style={{ transition: 'all 0.3s ease' }}
+                onClick={() => {
+                  // Criar produto com variação para o carrinho
+                  const produtoComVariacao = {
+                    ...produto,
+                    preco: selectedVariant?.preco || produto.preco,
+                    variacao_selecionada: selectedVariant
+                  }
+                  addToCart(produtoComVariacao)
+                }}
+                className="bg-wine text-white px-6 py-3 font-body text-xs uppercase tracking-wider hover:bg-wine-dark flex items-center gap-2 transition-colors touch-manipulation"
+                style={{ 
+                  transition: 'all 0.3s ease',
+                  minHeight: isMobile ? '44px' : 'auto', // Tamanho mínimo para touch
+                  minWidth: isMobile ? '44px' : 'auto'
+                }}
               >
                 <ShoppingBag size={16} />
                 Adicionar
@@ -351,7 +447,11 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
             ) : (
               <button
                 disabled
-                className="bg-beige-medium text-taupe px-6 py-3 font-body text-xs uppercase tracking-wider cursor-not-allowed"
+                className="bg-beige-medium text-taupe px-6 py-3 font-body text-xs uppercase tracking-wider cursor-not-allowed touch-manipulation"
+                style={{
+                  minHeight: isMobile ? '44px' : 'auto',
+                  minWidth: isMobile ? '44px' : 'auto'
+                }}
               >
                 Esgotado
               </button>

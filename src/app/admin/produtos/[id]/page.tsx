@@ -7,6 +7,7 @@ import { ArrowLeft, Save, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import ImageUpload from '@/components/ImageUpload'
+import ProductVariantManager from '@/components/admin/ProductVariantManager'
 
 export default function EditProdutoPage() {
   const router = useRouter()
@@ -315,6 +316,18 @@ export default function EditProdutoPage() {
             maxImages={4}
           />
         </motion.div>
+
+        {/* Variações do Produto - Apenas para produtos existentes */}
+        {!isNew && produtoId && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6"
+          >
+            <ProductVariantManager produtoId={produtoId} />
+          </motion.div>
+        )}
 
         {/* Actions Modernas */}
         <div className="flex items-center gap-4">
