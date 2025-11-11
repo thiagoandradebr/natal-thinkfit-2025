@@ -430,7 +430,7 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
                   const produtoComVariacao = {
                     ...produto,
                     preco: selectedVariant?.preco || produto.preco,
-                    variacao_selecionada: selectedVariant
+                    variacao_selecionada: selectedVariant || undefined
                   }
                   addToCart(produtoComVariacao)
                 }}

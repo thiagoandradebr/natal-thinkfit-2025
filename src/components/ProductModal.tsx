@@ -73,7 +73,7 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
     const produtoComVariacao = {
       ...produto,
       preco: selectedVariant?.preco || produto.preco,
-      variacao_selecionada: selectedVariant
+      variacao_selecionada: selectedVariant || undefined
     }
     addToCart(produtoComVariacao)
     onClose()

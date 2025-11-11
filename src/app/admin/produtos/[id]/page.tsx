@@ -36,48 +36,101 @@ export default function EditProdutoPage() {
         setLoading(false)
         return
       }
-      try {
-        const { data, error } = await supabase
-          .from('produtos_natal')
-          .select('*')
+    try {
+      const { data, error } = await supabase
+        .from('produtos_natal')
+        .select('*')
           .eq('id', produtoId)
-          .single()
+        .single()
 
-        if (error) throw error
-        if (data) {
-          setFormData({
-            nome: data.nome || '',
-            slug: data.slug || '',
-            descricao_curta: data.descricao_curta || '',
-            descricao_longa: data.descricao_longa || '',
-            preco: data.preco || 0,
-            tamanho: data.tamanho || '',
-            fotos: data.fotos || [],
-            destaque: data.destaque || false,
-            status: data.status || 'disponivel',
-            quantidade_estoque: data.quantidade_estoque || 0,
-          })
-        }
-      } catch (error) {
-        console.error('Erro ao buscar produto:', error)
-        alert('Erro ao carregar produto')
-      } finally {
-        setLoading(false)
+      if (error) throw error
+      if (data) {
+        setFormData({
+          nome: data.nome || '',
+          slug: data.slug || '',
+          descricao_curta: data.descricao_curta || '',
+          descricao_longa: data.descricao_longa || '',
+          preco: data.preco || 0,
+          tamanho: data.tamanho || '',
+          fotos: data.fotos || [],
+          destaque: data.destaque || false,
+          status: data.status || 'disponivel',
+          quantidade_estoque: data.quantidade_estoque || 0,
+        })
       }
+    } catch (error) {
+      console.error('Erro ao buscar produto:', error)
+      alert('Erro ao carregar produto')
+    } finally {
+      setLoading(false)
     }
+  }
 
     fetchProduto()
   }, [produtoId, isNew])
+
+  // Função para gerar slug a partir do nome
+  const generateSlug = (text: string): string => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^a-z0-9]+/g, '-') // Substitui caracteres especiais por hífen
+      .replace(/^-+|-+$/g, '') // Remove hífens do início e fim
+  }
+
+  // Função para garantir que o slug seja único
+  const ensureUniqueSlug = async (slug: string, excludeId?: string): Promise<string> => {
+    let uniqueSlug = slug
+    let counter = 1
+
+    while (true) {
+      const { data, error } = await supabase
+        .from('produtos_natal')
+        .select('id')
+        .eq('slug', uniqueSlug)
+        .limit(1)
+
+      if (error) {
+        console.error('Erro ao verificar slug:', error)
+        break
+      }
+
+      // Se não encontrou nenhum produto com esse slug, ou se é o próprio produto
+      if (!data || data.length === 0 || (excludeId && data[0]?.id === excludeId)) {
+        break
+      }
+
+      // Se encontrou um produto com esse slug, adiciona um número
+      uniqueSlug = `${slug}-${counter}`
+      counter++
+    }
+
+    return uniqueSlug
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
 
     try {
+      // Garantir que o slug seja único antes de salvar
+      const uniqueSlug = await ensureUniqueSlug(
+        formData.slug || generateSlug(formData.nome),
+        isNew ? undefined : produtoId
+      )
+
+      const dataToSave = {
+        ...formData,
+        slug: uniqueSlug,
+        // Se for novo produto, adicionar ordem como último
+        ...(isNew && { ordem: 9999 }) // Será reordenado depois se necessário
+      }
+
       if (isNew) {
         const { error } = await supabase
           .from('produtos_natal')
-          .insert([formData])
+          .insert([dataToSave])
           .select('*')
 
         if (error) throw error
@@ -85,7 +138,7 @@ export default function EditProdutoPage() {
       } else {
         const { error } = await supabase
           .from('produtos_natal')
-          .update(formData)
+          .update(dataToSave)
           .eq('id', produtoId)
           .select('*')
 
@@ -96,14 +149,39 @@ export default function EditProdutoPage() {
       router.push('/admin/produtos')
     } catch (error: any) {
       console.error('Erro ao salvar produto:', error)
-      alert('Erro ao salvar produto: ' + (error?.message || 'Erro desconhecido'))
+      
+      // Mensagem de erro mais amigável
+      let errorMessage = 'Erro ao salvar produto'
+      if (error?.message?.includes('duplicate key')) {
+        errorMessage = 'Já existe um produto com este slug. O sistema tentará gerar um slug único automaticamente.'
+      } else if (error?.message) {
+        errorMessage = `Erro: ${error.message}`
+      }
+      
+      alert(errorMessage)
     } finally {
       setSaving(false)
     }
   }
 
   const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value }
+      
+      // Se o campo alterado for "nome" e o slug estiver vazio ou igual ao slug gerado do nome anterior
+      if (field === 'nome' && value) {
+        const currentSlug = prev.slug || ''
+        const generatedSlug = generateSlug(value)
+        
+        // Só atualiza o slug se ele estiver vazio ou se for igual ao slug gerado do nome anterior
+        // Isso permite que o usuário edite o slug manualmente sem ser sobrescrito
+        if (!currentSlug || currentSlug === generateSlug(prev.nome || '')) {
+          newData.slug = generatedSlug
+        }
+      }
+      
+      return newData
+    })
   }
 
   const handleImagesChange = (newImages: string[]) => {
