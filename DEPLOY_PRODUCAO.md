@@ -3,40 +3,41 @@
 ## ✅ Status do Deploy
 
 **Data:** $(date)
-**Commit:** f2a303d
+**Commit:** ced32a8
 **Branch:** main
 
 ## 📦 O que foi enviado
 
-### Otimizações de Performance
-- ✅ **Carregamento em lote de variações**: Redução de N queries para 1 única query
-- ✅ **Módulo utilitário**: Criado `src/lib/variants.ts` para processar variações
-- ✅ **Carregamento paralelo**: Produtos, variações e configurações carregados simultaneamente
-- ✅ **Mapa de variações**: Acesso O(1) às variações por produto_id
-
-### Correções de UI/UX
-- ✅ **Modal acima do header**: Corrigido z-index (1001 vs 1000)
-- ✅ **Bloqueio de scroll**: Body bloqueado quando modal abre
-- ✅ **Preservação de scroll**: Posição de scroll restaurada ao fechar modal
-- ✅ **Backdrop-blur otimizado**: Performance melhorada (blur 12px com willChange)
-- ✅ **AnimatePresence configurado**: Animações funcionando corretamente
+### Otimizações Massivas de Performance (Mobile)
+- ✅ **Hook compartilhado useIsMobile**: Redução de N listeners para 1 único listener global
+- ✅ **Transições CSS otimizadas**: Removidas transições globais excessivas (400ms → 200ms, 150ms em mobile)
+- ✅ **Elementos decorativos**: Desabilitados em mobile (35→20 desktop, 0 mobile)
+- ✅ **IntersectionObserver otimizado**: Threshold reduzido e rootMargin para pré-carregar
+- ✅ **Animações simplificadas**: Delays e durações reduzidos em mobile
+- ✅ **whileHover desabilitado**: Em mobile para melhor performance
+- ✅ **useMemo aplicado**: Para cálculos pesados (getDefaultVariant)
+- ✅ **will-change seletivo**: Aplicado apenas onde necessário
+- ✅ **Type tween**: Animações usando tween ao invés de spring
 
 ### Arquivos Modificados
-- `src/app/page.tsx` - Carregamento em lote de variações
-- `src/components/ProductCard.tsx` - Recebe variações via props
-- `src/components/ProductModal.tsx` - Correção de travamento e z-index
-- `src/lib/variants.ts` - **NOVO** - Módulo utilitário para variações
+- `src/hooks/useIsMobile.ts` - **NOVO** - Hook compartilhado para detectar mobile
+- `src/app/globals.css` - Transições otimizadas
+- `src/app/page.tsx` - Animações otimizadas para mobile
+- `src/components/ProductCard.tsx` - Performance otimizada
+- `DEPLOY_PRODUCAO.md` - Documentação atualizada
 
 ## 📊 Melhorias de Performance
 
-### Antes
-- N queries (uma por produto) para carregar variações
-- Exemplo: 6 produtos = 6 queries + 1 query de produtos = **7 queries**
+### Antes vs Depois
 
-### Depois
-- 1 query única para todas as variações
-- Total: **3 queries** (produtos, variações, configurações) executadas em paralelo
-- **Redução de ~57% no número de queries**
+| Métrica | Antes | Depois | Melhoria |
+|---------|-------|--------|----------|
+| Event Listeners | N listeners (1 por card) | 1 listener compartilhado | ~100% |
+| Transições CSS | 400ms global | 200ms (150ms mobile) | ~50-62% |
+| Elementos Decorativos | 35 desktop, 12 mobile | 20 desktop, 0 mobile | 100% mobile |
+| Delays Animação | 0.15s | 0.05s mobile | 66% |
+| Duração Animação | 0.6-0.8s | 0.4-0.5s mobile | ~40% |
+| whileHover Mobile | Ativo | Desabilitado | 100% |
 
 ## 🔍 Verificações Pós-Deploy
 
@@ -55,27 +56,29 @@ Certifique-se de que todas estão configuradas no Vercel:
 
 ### 3. Testes em Produção
 
-#### Landing Page
-- [ ] Página inicial carrega corretamente
+#### Landing Page - Performance
+- [ ] **Página carrega sem travamentos em mobile**
+- [ ] **Transições fluidas sem travadinhas**
+- [ ] **Scroll suave e responsivo**
+- [ ] **Animações funcionando corretamente**
 - [ ] Produtos aparecem do Supabase
-- [ ] **Modal de produto abre sem travamento**
-- [ ] **Modal aparece acima do header**
-- [ ] **Scroll bloqueado quando modal aberto**
+- [ ] Modal de produto abre sem travamento
 - [ ] Carrinho funciona
 - [ ] Checkout funciona
 - [ ] Pedidos são salvos
 
-#### Performance
-- [ ] Cardápio carrega mais rápido
-- [ ] Sem múltiplas queries desnecessárias
-- [ ] Variações aparecem corretamente
-- [ ] Sem travamentos ao abrir modal
+#### Mobile Específico
+- [ ] **Sem elementos decorativos animados (performance)**
+- [ ] **Animações rápidas e suaves**
+- [ ] **Sem delays desnecessários**
+- [ ] **Scroll fluido**
+- [ ] **Touch responsivo**
 
 ### 4. Verificar Console do Navegador
 - [ ] Sem erros no console
 - [ ] Sem warnings críticos
 - [ ] Conexão com Supabase funcionando
-- [ ] **Sem problemas de z-index**
+- [ ] **Performance melhorada (verificar Network tab)**
 
 ## 🔧 Comandos Úteis
 
@@ -100,9 +103,9 @@ git push origin main
 ## 📝 Próximos Passos
 
 1. **Aguardar deploy no Vercel** (2-5 minutos)
-2. **Testar todas as funcionalidades** na URL de produção
-3. **Verificar modal de produtos** (sem travamento)
-4. **Monitorar performance** (deve estar mais rápida)
+2. **Testar em mobile** (principal foco das otimizações)
+3. **Verificar performance** (deve estar muito melhor)
+4. **Testar todas as funcionalidades** na URL de produção
 5. **Coletar feedback** dos usuários
 
 ## 🆘 Troubleshooting
@@ -110,17 +113,19 @@ git push origin main
 ### Deploy falhou
 - Verifique os logs no Vercel
 - Confirme que todas as variáveis de ambiente estão configuradas
-- Teste o build local: `npm run build` ✅ (já testado e funcionando)
+- Teste build local: `npm run build` ✅ (já testado e funcionando)
 
-### Modal ainda trava
-- Verifique se o z-index está correto (1001)
-- Confirme que o bloqueio de scroll está funcionando
-- Verifique console do navegador para erros
+### Ainda há travamentos em mobile
+- Verifique se o deploy foi concluído
+- Limpe cache do navegador
+- Teste em dispositivo real (não apenas emulador)
+- Verifique console para erros
 
 ### Performance não melhorou
 - Verifique Network tab no DevTools
-- Confirme que há apenas 1 query para variações
-- Verifique se o carregamento paralelo está funcionando
+- Confirme que elementos decorativos estão desabilitados em mobile
+- Verifique se animações estão simplificadas
+- Teste em dispositivo real
 
 ## 📞 Suporte
 
@@ -133,6 +138,6 @@ Se encontrar problemas:
 ---
 
 **Status:** ✅ Código enviado para produção
-**Commit:** f2a303d
+**Commit:** ced32a8
 **Build Local:** ✅ Sucesso
-**Próximo passo:** Aguardar deploy no Vercel e testar
+**Próximo passo:** Aguardar deploy no Vercel e testar em mobile
