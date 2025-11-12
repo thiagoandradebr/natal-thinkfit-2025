@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingBag, Star, Sparkles, Eye, Check, MilkOff, Droplet } from 'lucide-react'
 import { Produto, VariacaoProduto } from '@/types/database'
@@ -8,6 +9,7 @@ import { useCart } from '@/contexts/CartContext'
 import ProductModal from './ProductModal'
 import ProductVariantSelector from './ProductVariantSelector'
 import { getDefaultVariant } from '@/lib/variants'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface ProductCardProps {
   produto: Produto
@@ -20,12 +22,29 @@ export default function ProductCard({ produto, index = 0, variants: propsVariant
   const [showModal, setShowModal] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [isInView, setIsInView] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-  const [selectedVariant, setSelectedVariant] = useState<VariacaoProduto | null>(null)
+  const isMobile = useIsMobile() // Hook compartilhado
   const cardRef = useRef<HTMLDivElement>(null)
 
   // Usar variações recebidas via props (já carregadas em lote)
   const variants = propsVariants
+
+  // Selecionar variação padrão - usando useMemo para evitar recálculo
+  const defaultVariant = React.useMemo(() => {
+    if (variants.length > 0) {
+      return getDefaultVariant(variants)
+    }
+    return null
+  }, [variants])
+
+  // Estado para variação selecionada (pode ser alterada pelo usuário)
+  const [selectedVariant, setSelectedVariant] = useState<VariacaoProduto | null>(defaultVariant)
+
+  // Atualizar selectedVariant quando defaultVariant mudar
+  useEffect(() => {
+    if (defaultVariant) {
+      setSelectedVariant(defaultVariant)
+    }
+  }, [defaultVariant?.id]) // Apenas quando o ID mudar
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -34,30 +53,14 @@ export default function ProductCard({ produto, index = 0, variants: propsVariant
     }).format(price)
   }
 
-  // Verificar prefers-reduced-motion
-  const prefersReducedMotion = typeof window !== 'undefined' 
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
-    : false
-
-  // Detectar mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+  // Verificar prefers-reduced-motion - memoizado
+  const prefersReducedMotion = React.useMemo(() => {
+    return typeof window !== 'undefined' 
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
+      : false
   }, [])
 
-  // Selecionar variação padrão quando as variações mudarem
-  useEffect(() => {
-    if (variants.length > 0) {
-      const defaultVariant = getDefaultVariant(variants)
-      setSelectedVariant(defaultVariant)
-    }
-  }, [variants])
-
-  // Intersection Observer para efeito de entrada
+  // Intersection Observer para efeito de entrada - Otimizado
   useEffect(() => {
     if (prefersReducedMotion) {
       setIsInView(true)
@@ -66,16 +69,21 @@ export default function ProductCard({ produto, index = 0, variants: propsVariant
 
     if (!cardRef.current) return
 
+    // Usar threshold menor e rootMargin para melhor performance
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setIsInView(true)
+            // Unobserve imediatamente após detectar para melhor performance
             observer.unobserve(entry.target)
           }
         })
       },
-      { threshold: 0.1 }
+      { 
+        threshold: 0.05, // Reduzido de 0.1 para 0.05
+        rootMargin: isMobile ? '50px' : '100px' // Pre-carregar antes de aparecer
+      }
     )
 
     observer.observe(cardRef.current)
@@ -85,36 +93,38 @@ export default function ProductCard({ produto, index = 0, variants: propsVariant
         observer.unobserve(cardRef.current)
       }
     }
-  }, [prefersReducedMotion])
+  }, [prefersReducedMotion, isMobile])
 
-  // Delay escalonado para entrada
-  const entryDelay = index * 0.15
+  // Delay escalonado para entrada - Reduzido em mobile para melhor performance
+  const entryDelay = isMobile ? index * 0.05 : index * 0.1
 
   return (
     <>
       <motion.div
         ref={cardRef}
         data-card-id={produto.id}
-        initial={{ opacity: 0, y: 30 }}
-        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: isMobile ? 20 : 30 }}
+        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: isMobile ? 20 : 30 }}
         transition={{ 
-          duration: 0.6, 
+          duration: isMobile ? 0.4 : 0.5, // Reduzir duração em mobile
           delay: entryDelay,
-          ease: 'easeOut' 
+          ease: 'easeOut',
+          type: 'tween' // Usar tween para melhor performance
         }}
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
+        onHoverStart={() => !isMobile && setIsHovered(true)}
+        onHoverEnd={() => !isMobile && setIsHovered(false)}
         className="bg-white overflow-hidden group relative"
         style={{ 
           backgroundColor: '#FFFFFF',
           borderRadius: '16px',
-          boxShadow: isHovered 
+          boxShadow: isHovered && !isMobile
             ? '0 24px 48px rgba(0,0,0,0.2)' 
             : '0 4px 12px rgba(0,0,0,0.08)',
-          transform: isHovered 
-            ? (prefersReducedMotion ? 'none' : isMobile ? 'translateY(-4px)' : 'translateY(-8px)')
+          transform: isHovered && !isMobile && !prefersReducedMotion
+            ? 'translateY(-8px)'
             : 'translateY(0)',
-          transition: 'all 0.3s ease-out'
+          transition: isMobile ? 'box-shadow 0.2s ease-out' : 'all 0.3s ease-out',
+          willChange: isMobile ? 'auto' : (isHovered ? 'transform, box-shadow' : 'auto')
         }}
       >
         {/* Imagem do Produto com Overlay */}
@@ -129,11 +139,12 @@ export default function ProductCard({ produto, index = 0, variants: propsVariant
             className="w-full h-full object-cover"
             style={{ 
               filter: 'grayscale(5%)',
-              transition: 'transform 0.5s ease'
+              transition: isMobile ? 'none' : 'transform 0.4s ease',
+              willChange: isMobile ? 'auto' : (isHovered ? 'transform' : 'auto')
             }}
-            animate={{ 
-              scale: isHovered && !isMobile ? 1.08 : 1 
-            }}
+            animate={!isMobile ? { 
+              scale: isHovered ? 1.08 : 1 
+            } : {}}
             loading="lazy"
             decoding="async"
           />
@@ -204,11 +215,11 @@ export default function ProductCard({ produto, index = 0, variants: propsVariant
 
         {/* Conteúdo com padding - Otimizado para mobile */}
         <div style={{ padding: isMobile ? '20px' : '24px' }}>
-          {/* Tamanho/Tipo (label pequeno) */}
+          {/* Tamanho/Tipo (label pequeno) - Sem animação em mobile */}
           <motion.p 
-            initial={{ opacity: 0 }}
+            initial={{ opacity: isMobile ? 1 : 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
+            transition={isMobile ? {} : { delay: 0.1, duration: 0.3 }}
             className="font-body"
             style={{ 
               fontSize: '12px',
@@ -222,11 +233,11 @@ export default function ProductCard({ produto, index = 0, variants: propsVariant
             {produto.tamanho}
           </motion.p>
 
-          {/* Nome do Produto (título) */}
+          {/* Nome do Produto (título) - Animação simplificada em mobile */}
           <motion.h3 
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: isMobile ? 1 : 0, y: isMobile ? 0 : 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={isMobile ? {} : { delay: 0.15, duration: 0.3 }}
             className="font-display transition-colors cursor-pointer"
             style={{ 
               fontFamily: 'Georgia, "Playfair Display", serif',

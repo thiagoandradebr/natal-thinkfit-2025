@@ -221,17 +221,23 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Transições Globais de Luxo */
-* {
-  transition-duration: 400ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* Transições Globais de Luxo - Otimizado para performance */
+/* Removido * { transition } para melhor performance, aplicando apenas onde necessário */
 
-/* Microinterações Refinadas */
+/* Microinterações Refinadas - Otimizado */
 button, a, input, textarea, select {
   transition-property: opacity, transform, color, background-color, border-color;
-  transition-duration: 400ms;
+  transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  /* GPU acceleration apenas quando necessário */
+  will-change: auto;
+}
+
+/* Em mobile, reduzir ainda mais as transições */
+@media (max-width: 768px) {
+  button, a, input, textarea, select {
+    transition-duration: 150ms;
+  }
 }
 
 button:hover:not(:disabled) {

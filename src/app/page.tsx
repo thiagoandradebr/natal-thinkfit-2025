@@ -15,22 +15,7 @@ import { supabase } from '@/lib/supabase'
 import { Produto, VariacaoProduto } from '@/types/database'
 import { getLastSection } from '@/lib/storage'
 import { createVariantsMap } from '@/lib/variants'
-
-// Hook para detectar mobile
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  return isMobile
-}
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 // Componente FAQ Item com Tema Natalino
 function FAQItem({ question, answer, index }: { question: string; answer: string; index: number }) {
@@ -304,21 +289,21 @@ export default function Home() {
           </svg>
         </div>
 
-        {/* Elementos Decorativos Flutuantes - Reduzidos em mobile */}
-        {(() => {
+        {/* Elementos Decorativos Flutuantes - Desabilitados em mobile para performance */}
+        {!isMobile && (() => {
           const prefersReducedMotion = typeof window !== 'undefined' 
             ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
             : false
           
-          // Reduzir elementos em mobile: 35 -> 12
-          const decorCount = isMobile ? 12 : 35
+          // Reduzir elementos: 35 -> 20 para melhor performance
+          const decorCount = 20
           
           return Array.from({ length: decorCount }).map((_, i) => {
             const left = `${(i * 47) % 100}%`
             const top = `${(i * 31) % 100}%`
             const opacity = 0.05 + (i % 3) * 0.03
             const delay = i * 0.2
-            const duration = 4 + (i % 3) * 1
+            const duration = 6 + (i % 3) * 1 // Aumentar duração para animação mais suave
             const size = [8, 12, 16][i % 3]
             const shape = i % 3 === 0 ? 'star' : i % 3 === 1 ? 'circle' : 'snowflake'
             
@@ -333,18 +318,20 @@ export default function Home() {
                   zIndex: -1,
                   width: `${size}px`,
                   height: `${size}px`,
-                  color: i % 2 === 0 ? '#C9A961' : '#2d5016'
+                  color: i % 2 === 0 ? '#C9A961' : '#2d5016',
+                  willChange: prefersReducedMotion ? 'auto' : 'transform, opacity'
                 }}
                 animate={prefersReducedMotion ? {} : {
-                  y: [0, -20, 0],
-                  opacity: [opacity, opacity * 1.5, opacity],
+                  y: [0, -15, 0], // Reduzir movimento
+                  opacity: [opacity, opacity * 1.3, opacity], // Reduzir variação
                   rotate: [0, 180, 360]
                 }}
                 transition={{
                   duration,
                   delay,
                   repeat: Infinity,
-                  ease: 'easeInOut'
+                  ease: 'easeInOut',
+                  type: 'tween' // Usar tween ao invés de spring para melhor performance
                 }}
               >
                 {shape === 'star' && (
@@ -376,24 +363,24 @@ export default function Home() {
         })()}
 
         <div className="container mx-auto px-4 sm:px-6 md:px-12 lg:px-20 relative z-10" style={{ maxWidth: '1400px' }}>
-          {/* Título e Subtítulo - Design Destacado */}
+          {/* Título e Subtítulo - Design Destacado - Otimizado para mobile */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: isMobile ? 20 : 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+            viewport={{ once: true, margin: isMobile ? '-50px' : '0px' }}
+            transition={{ duration: isMobile ? 0.5 : 0.6 }}
             className="text-center relative py-4 sm:py-6 md:py-8"
           >
             {/* Decorações de fundo sutis */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-gold-warm/30 to-transparent"></div>
             <div className="absolute top-4 left-1/2 -translate-x-1/2 text-gold-warm/20 text-2xl">✨</div>
             
-            {/* Badge "Produção Limitada" */}
+            {/* Badge "Produção Limitada" - Animação simplificada em mobile */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: isMobile ? 1 : 0, scale: isMobile ? 1 : 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={isMobile ? {} : { duration: 0.4, delay: 0.1 }}
               className="inline-block mb-6 sm:mb-8"
             >
               <span className="inline-block px-4 sm:px-6 py-2 sm:py-2.5 bg-wine/10 border border-wine/30 text-wine text-xs sm:text-sm font-body uppercase tracking-[2px] font-semibold rounded-full">
@@ -401,12 +388,12 @@ export default function Home() {
               </span>
             </motion.div>
 
-            {/* Título Principal com Gradiente */}
+            {/* Título Principal com Gradiente - Otimizado */}
             <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: isMobile ? 15 : 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.1 }}
+              transition={{ duration: isMobile ? 0.5 : 0.6, delay: isMobile ? 0 : 0.1 }}
               className="font-display font-light text-[#3E2723] mb-4 sm:mb-6 relative"
               style={{ 
                 fontSize: isMobile ? 'clamp(36px, 8vw, 48px)' : 'clamp(56px, 6vw, 72px)',
@@ -420,12 +407,12 @@ export default function Home() {
               </span>
             </motion.h2>
 
-            {/* Linha decorativa */}
+            {/* Linha decorativa - Animação simplificada em mobile */}
             <motion.div
-              initial={{ scaleX: 0 }}
+              initial={{ scaleX: isMobile ? 1 : 0 }}
               whileInView={{ scaleX: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.3 }}
+              transition={isMobile ? {} : { duration: 0.5, delay: 0.2 }}
               className="flex items-center justify-center gap-3 mb-6 sm:mb-8"
             >
               <div className="h-px w-12 sm:w-16 bg-gold-warm/40"></div>
@@ -433,12 +420,12 @@ export default function Home() {
               <div className="h-px w-12 sm:w-16 bg-gold-warm/40"></div>
             </motion.div>
 
-            {/* Subtítulo com destaque */}
+            {/* Subtítulo com destaque - Otimizado */}
             <motion.p 
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: isMobile ? 10 : 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              transition={{ duration: isMobile ? 0.4 : 0.5, delay: isMobile ? 0 : 0.2 }}
               className="font-body font-medium text-[#6D4C41] max-w-2xl mx-auto leading-relaxed whitespace-nowrap"
               style={{ 
                 fontSize: isMobile ? 'clamp(15px, 3vw, 18px)' : 'clamp(18px, 2vw, 22px)',
@@ -490,21 +477,21 @@ export default function Home() {
         <div className="absolute top-20 right-0 w-96 h-96 border border-sage opacity-5 rounded-full" />
         <div className="absolute bottom-20 left-0 w-64 h-64 border border-gold-warm opacity-5 rounded-full" />
 
-        {/* Elementos Decorativos Flutuantes Natalinos - Reduzido para melhor performance */}
-        {(() => {
+        {/* Elementos Decorativos Flutuantes Natalinos - Desabilitados em mobile para performance */}
+        {!isMobile && (() => {
           const prefersReducedMotion = typeof window !== 'undefined' 
             ? window.matchMedia('(prefers-reduced-motion: reduce)').matches 
             : false
           
-          // Reduzir elementos em mobile: 20 -> 8
-          const decorCount = isMobile ? 8 : 20
+          // Reduzir elementos: 20 -> 12 para melhor performance
+          const decorCount = 12
           
           return Array.from({ length: decorCount }).map((_, i) => {
             const left = `${(i * 53) % 100}%`
             const top = `${(i * 37) % 100}%`
             const opacity = 0.12 + (i % 3) * 0.05
             const delay = i * 0.25
-            const duration = 5 + (i % 3) * 1.5
+            const duration = 6 + (i % 3) * 1.5 // Aumentar duração para animação mais suave
             const size = [10, 14, 18][i % 3]
             const shape = i % 3 === 0 ? 'star' : i % 3 === 1 ? 'circle' : 'snowflake'
             
@@ -519,18 +506,20 @@ export default function Home() {
                   zIndex: 0,
                   width: `${size}px`,
                   height: `${size}px`,
-                  color: i % 2 === 0 ? '#C9A961' : '#2d5016'
+                  color: i % 2 === 0 ? '#C9A961' : '#2d5016',
+                  willChange: prefersReducedMotion ? 'auto' : 'transform, opacity'
                 }}
                 animate={prefersReducedMotion ? {} : {
-                  y: [0, -25, 0],
-                  opacity: [opacity, opacity * 1.3, opacity],
+                  y: [0, -20, 0], // Reduzir movimento
+                  opacity: [opacity, opacity * 1.2, opacity], // Reduzir variação
                   rotate: [0, 180, 360]
                 }}
                 transition={{
                   duration,
                   delay,
                   repeat: Infinity,
-                  ease: 'easeInOut'
+                  ease: 'easeInOut',
+                  type: 'tween' // Usar tween para melhor performance
                 }}
               >
                 {shape === 'star' && (
@@ -562,12 +551,12 @@ export default function Home() {
         })()}
 
         <div className="container mx-auto px-4 sm:px-6 md:px-12 lg:px-20 relative z-10" style={{ maxWidth: '1400px' }}>
-          {/* Título com ornamentos */}
+          {/* Título com ornamentos - Otimizado para mobile */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: isMobile ? 20 : 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+            viewport={{ once: true, margin: isMobile ? '-50px' : '0px' }}
+            transition={{ duration: isMobile ? 0.5 : 0.6 }}
             className="text-center"
             style={{ marginBottom: isMobile ? '40px' : '96px' }}
           >
@@ -589,13 +578,13 @@ export default function Home() {
 
           {/* Grid 4 Colunas - Responsivo para mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
-            {/* Benefício 1 */}
+            {/* Benefício 1 - Otimizado para mobile */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: isMobile ? 20 : 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1, duration: 0.8 }}
-              whileHover={{ y: -8 }}
+              viewport={{ once: true, margin: isMobile ? '-50px' : '0px' }}
+              transition={{ delay: isMobile ? 0 : 0.1, duration: isMobile ? 0.4 : 0.6 }}
+              whileHover={!isMobile ? { y: -8 } : {}}
               className="text-center group"
             >
               <div className="relative inline-block mb-8">
@@ -616,13 +605,13 @@ export default function Home() {
               </p>
             </motion.div>
 
-            {/* Benefício 2 */}
+            {/* Benefício 2 - Otimizado para mobile */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: isMobile ? 20 : 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              whileHover={{ y: -8 }}
+              viewport={{ once: true, margin: isMobile ? '-50px' : '0px' }}
+              transition={{ delay: isMobile ? 0 : 0.15, duration: isMobile ? 0.4 : 0.6 }}
+              whileHover={!isMobile ? { y: -8 } : {}}
               className="text-center group"
             >
               <div className="relative inline-block mb-8">
@@ -641,13 +630,13 @@ export default function Home() {
               </p>
             </motion.div>
 
-            {/* Benefício 3 */}
+            {/* Benefício 3 - Otimizado para mobile */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: isMobile ? 20 : 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              whileHover={{ y: -8 }}
+              viewport={{ once: true, margin: isMobile ? '-50px' : '0px' }}
+              transition={{ delay: isMobile ? 0 : 0.2, duration: isMobile ? 0.4 : 0.6 }}
+              whileHover={!isMobile ? { y: -8 } : {}}
               className="text-center group"
             >
               <div className="relative inline-block mb-8">
@@ -666,13 +655,13 @@ export default function Home() {
               </p>
             </motion.div>
 
-            {/* Benefício 4 */}
+            {/* Benefício 4 - Otimizado para mobile */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: isMobile ? 20 : 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              whileHover={{ y: -8 }}
+              viewport={{ once: true, margin: isMobile ? '-50px' : '0px' }}
+              transition={{ delay: isMobile ? 0 : 0.25, duration: isMobile ? 0.4 : 0.6 }}
+              whileHover={!isMobile ? { y: -8 } : {}}
               className="text-center group"
             >
               <div className="relative inline-block mb-8">
