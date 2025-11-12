@@ -53,8 +53,17 @@ export default function ProductVariantSelector({
   if (!variants || variants.length === 0) return null
 
   // Se só tem uma variação, mostrar informação sem seletor
+  // Mas garantir que a variação seja selecionada automaticamente
   if (variants.length === 1) {
     const variant = variants[0]
+    // Garantir que a variação única seja selecionada
+    useEffect(() => {
+      if (!selected) {
+        setSelected(variant.id)
+        onSelect(variant)
+      }
+    }, [variant.id, selected, onSelect])
+    
     return (
       <div className="mt-4">
         {variant.descricao && (

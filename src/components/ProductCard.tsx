@@ -67,11 +67,40 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
           const defaultVariant = data.find(v => v.is_default) || data[0]
           setSelectedVariant(defaultVariant)
         } else {
-          setSelectedVariant(null)
+          // Se não houver variações, criar uma variação virtual usando o preço do produto
+          // Esta variação virtual representa o próprio produto como variação principal
+          const virtualVariant: VariacaoProduto = {
+            id: `virtual-${produto.id}`,
+            produto_id: produto.id,
+            nome_variacao: produto.tamanho || 'Padrão',
+            descricao: produto.descricao_curta || '',
+            preco: produto.preco, // Usa o preço do produto como variação principal
+            is_default: true,
+            ordem_exibicao: 0,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+          setVariants([virtualVariant])
+          setSelectedVariant(virtualVariant) // Sempre seleciona a variação virtual quando não há variações reais
         }
       } catch (error) {
         console.error('Erro ao carregar variações:', error)
-        setSelectedVariant(null)
+        // Em caso de erro, criar variação virtual
+        const virtualVariant: VariacaoProduto = {
+          id: `virtual-${produto.id}`,
+          produto_id: produto.id,
+          nome_variacao: produto.tamanho || 'Padrão',
+          descricao: produto.descricao_curta || '',
+          preco: produto.preco,
+          is_default: true,
+          ordem_exibicao: 0,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+        setVariants([virtualVariant])
+        setSelectedVariant(virtualVariant)
       } finally {
         setLoadingVariants(false)
       }
@@ -366,8 +395,8 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
             })}
           </div>
 
-          {/* Seletor de Variações */}
-          {!loadingVariants && variants.length > 1 && (
+          {/* Seletor de Variações - Só mostra se houver mais de 1 variação real (não virtual) */}
+          {!loadingVariants && variants.length > 1 && !variants.some(v => v.id?.startsWith('virtual-')) && (
             <div className="mt-3 pt-3 border-t border-beige-medium">
               <ProductVariantSelector
                 variants={variants}
@@ -378,31 +407,28 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
             </div>
           )}
 
+          {/* Quando há apenas uma variação virtual, garantir que está selecionada */}
+          {!loadingVariants && variants.length === 1 && variants[0]?.id?.startsWith('virtual-') && !selectedVariant && (
+            <div className="mt-3 pt-3 border-t border-beige-medium">
+              <div className="text-sm text-brown-medium">
+                {variants[0].nome_variacao}
+              </div>
+            </div>
+          )}
+
           {/* Preço e CTA em linha */}
           <div className="flex items-end justify-between pt-4 border-t border-beige-medium">
             <div>
-              {!loadingVariants && variants.length > 1 ? (
+              {!loadingVariants && selectedVariant ? (
                 <>
                   <div className="font-body text-[10px] text-brown-light mb-1 uppercase tracking-wider">
-                    {selectedVariant?.nome_variacao || 'Preço'}
+                    {selectedVariant.nome_variacao}
                   </div>
                   <span 
                     className="font-display font-medium text-gold-dark"
                     style={{ fontSize: isMobile ? '28px' : '32px', letterSpacing: '-0.5px' }}
                   >
-                    {formatPrice(selectedVariant?.preco || produto.preco)}
-                  </span>
-                </>
-              ) : !loadingVariants && variants.length === 1 ? (
-                <>
-                  <div className="font-body text-[10px] text-brown-light mb-1 uppercase tracking-wider">
-                    {selectedVariant?.nome_variacao || 'Preço'}
-                  </div>
-                  <span 
-                    className="font-display font-medium text-gold-dark"
-                    style={{ fontSize: isMobile ? '28px' : '32px', letterSpacing: '-0.5px' }}
-                  >
-                    {formatPrice(selectedVariant?.preco || produto.preco)}
+                    {formatPrice(selectedVariant.preco)}
                   </span>
                 </>
               ) : (
@@ -427,9 +453,11 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   // Criar produto com variação para o carrinho
+                  // Se não houver variação selecionada, usa o preço do produto diretamente
+                  // Se houver variação virtual, usa ela (que já contém o preço do produto)
                   const produtoComVariacao = {
                     ...produto,
-                    preco: selectedVariant?.preco || produto.preco,
+                    preco: selectedVariant?.preco || produto.preco, // Sempre usa o preço do produto como base
                     variacao_selecionada: selectedVariant || undefined
                   }
                   addToCart(produtoComVariacao)

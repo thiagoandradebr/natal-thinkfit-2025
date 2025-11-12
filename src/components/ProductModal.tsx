@@ -55,11 +55,39 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
           const defaultVariant = data.find(v => v.is_default) || data[0]
           setSelectedVariant(defaultVariant)
         } else {
-          setSelectedVariant(null)
+          // Se não houver variações, criar uma variação virtual usando o preço do produto
+          const virtualVariant: VariacaoProduto = {
+            id: `virtual-${produto.id}`,
+            produto_id: produto.id,
+            nome_variacao: produto.tamanho || 'Padrão',
+            descricao: produto.descricao_curta || '',
+            preco: produto.preco,
+            is_default: true,
+            ordem_exibicao: 0,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+          setVariants([virtualVariant])
+          setSelectedVariant(virtualVariant)
         }
       } catch (error) {
         console.error('Erro ao carregar variações:', error)
-        setSelectedVariant(null)
+        // Em caso de erro, criar variação virtual
+        const virtualVariant: VariacaoProduto = {
+          id: `virtual-${produto.id}`,
+          produto_id: produto.id,
+          nome_variacao: produto.tamanho || 'Padrão',
+          descricao: produto.descricao_curta || '',
+          preco: produto.preco,
+          is_default: true,
+          ordem_exibicao: 0,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+        setVariants([virtualVariant])
+        setSelectedVariant(virtualVariant)
       } finally {
         setLoadingVariants(false)
       }
@@ -254,8 +282,8 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
                 ))}
               </div>
 
-              {/* Seletor de Variações */}
-              {!loadingVariants && variants.length > 1 && (
+              {/* Seletor de Variações - Só mostra se houver mais de 1 variação real (não virtual) */}
+              {!loadingVariants && variants.length > 1 && !variants.some(v => v.id?.startsWith('virtual-')) && (
                 <div className="mb-6">
                   <ProductVariantSelector
                     variants={variants}

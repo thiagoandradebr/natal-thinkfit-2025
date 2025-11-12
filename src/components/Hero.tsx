@@ -5,6 +5,7 @@ import { ShoppingBag, Star, Sparkles } from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
 import { Produto } from '@/types/database'
 import { TextColor } from '@/components/ui/text-color'
+import { TextRotate } from '@/components/ui/text-rotate'
 
 interface HeroProps {
   titulo?: string
@@ -38,13 +39,6 @@ export default function Hero({
   
   const y = useTransform(scrollYProgress, [0, 1], ['0%', '30%'])
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
-
-  const scrollToCardapio = () => {
-    const element = document.getElementById('cardapio')
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-    }
-  }
 
   const scrollToPedido = () => {
     const element = document.getElementById('pedido')
@@ -91,36 +85,27 @@ export default function Hero({
             <div className="h-[1px] w-12 bg-gold-warm"></div>
           </motion.div>
 
-          {/* Subtítulo */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="font-body text-xl font-semibold text-gold-warm leading-tight whitespace-nowrap"
-          >
-            Bolos sem glúten, zero lactose e low sugar
-          </motion.p>
-
-          {/* CTAs */}
+          {/* Subtítulo com TextRotate */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
-            className="flex flex-col sm:flex-row gap-4 pt-4"
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="font-body text-2xl sm:text-3xl md:text-4xl font-bold leading-tight flex flex-wrap items-center gap-2 sm:gap-3"
           >
-            <button
-              onClick={scrollToPedido}
-              className="btn-primary bg-wine text-white px-10 py-4 font-body text-sm uppercase tracking-[2px] flex items-center justify-center gap-3 hover:bg-wine-dark group"
-            >
-              <ShoppingBag size={18} className="group-hover:scale-110 transition-transform" />
-              Monte Seu Pedido
-            </button>
-            <button
-              onClick={scrollToCardapio}
-              className="bg-forest text-white px-10 py-4 font-body text-sm uppercase tracking-[2px] hover:bg-forest-dark transition-all"
-            >
-              Ver Cardápio Completo
-            </button>
+            <span className="text-gold-warm whitespace-nowrap tracking-wide">PRODUTOS ZERO</span>
+            <TextRotate
+              texts={["GLÚTEN", "LACTOSE", "AÇUCAR"]}
+              rotationInterval={2500}
+              staggerFrom="last"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "-120%" }}
+              staggerDuration={0.03}
+              transition={{ type: "spring", damping: 30, stiffness: 400 }}
+              mainClassName="inline-block text-white px-3 sm:px-4 md:px-5 bg-wine overflow-hidden py-2 sm:py-2.5 md:py-3 justify-center rounded-lg shadow-lg font-bold tracking-wide"
+              splitLevelClassName="overflow-hidden pb-0.5 sm:pb-1 md:pb-1.5"
+              elementLevelClassName="inline-block"
+            />
           </motion.div>
 
         </motion.div>

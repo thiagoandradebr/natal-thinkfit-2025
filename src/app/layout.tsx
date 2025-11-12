@@ -5,6 +5,7 @@ import { ToastProvider } from '@/components/ToastProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://natal-thinkfit.vercel.app'),
   title: 'Cardápio de Natal ThinkFit — Bolos sem glúten, zero lactose e low sugar',
   description: 'Encomende bolos e doces natalinos autorais da Chef Juliana Andrade. Produção limitada — sabores sofisticados, low sugar e sem glúten.',
   keywords: ['natal', 'bolos', 'sem glúten', 'zero lactose', 'low sugar', 'thinkfit', 'saudável'],

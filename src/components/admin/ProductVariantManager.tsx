@@ -99,6 +99,14 @@ export default function ProductVariantManager({ produtoId }: ProductVariantManag
           throw error
         }
         
+        // Se for a variação padrão, sincronizar preço com o produto
+        if (formData.is_default) {
+          await supabase
+            .from('produtos_natal')
+            .update({ preco: preco })
+            .eq('id', produtoId)
+        }
+        
         alert('Variação atualizada com sucesso!')
       } else {
         // Criar
@@ -124,6 +132,14 @@ export default function ProductVariantManager({ produtoId }: ProductVariantManag
         if (error) {
           console.error('Erro detalhado ao criar variação:', error)
           throw error
+        }
+        
+        // Se for a variação padrão, sincronizar preço com o produto
+        if (formData.is_default) {
+          await supabase
+            .from('produtos_natal')
+            .update({ preco: preco })
+            .eq('id', produtoId)
         }
         
         alert('Variação criada com sucesso!')

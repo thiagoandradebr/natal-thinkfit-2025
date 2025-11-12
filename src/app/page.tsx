@@ -252,7 +252,7 @@ export default function Home() {
         style={{ 
           backgroundColor: '#F8F6F3',
           paddingTop: isMobile ? '80px' : '120px', 
-          paddingBottom: isMobile ? '80px' : '120px',
+          paddingBottom: isMobile ? '32px' : '48px',
           position: 'relative' // Adicionado para framer-motion
         }}
       >
@@ -352,31 +352,84 @@ export default function Home() {
         })()}
 
         <div className="container mx-auto px-4 sm:px-6 md:px-12 lg:px-20 relative z-10" style={{ maxWidth: '1400px' }}>
-          {/* Título e Subtítulo */}
+          {/* Título e Subtítulo - Design Destacado */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center"
+            className="text-center relative py-4 sm:py-6 md:py-8"
           >
-            <h2 
-              className="font-display font-light text-[#3E2723] mb-4"
-              style={{ fontSize: isMobile ? '32px' : '48px' }}
+            {/* Decorações de fundo sutis */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-gold-warm/30 to-transparent"></div>
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 text-gold-warm/20 text-2xl">✨</div>
+            
+            {/* Badge "Produção Limitada" */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="inline-block mb-6 sm:mb-8"
             >
-              Cardápio de Natal 2025
-            </h2>
-            <p 
-              className="font-body font-light text-[#8D6E63]"
+              <span className="inline-block px-4 sm:px-6 py-2 sm:py-2.5 bg-wine/10 border border-wine/30 text-wine text-xs sm:text-sm font-body uppercase tracking-[2px] font-semibold rounded-full">
+                Produção Limitada
+              </span>
+            </motion.div>
+
+            {/* Título Principal com Gradiente */}
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="font-display font-light text-[#3E2723] mb-4 sm:mb-6 relative"
               style={{ 
-                fontSize: isMobile ? '14px' : '15px', 
-                letterSpacing: '0.5px',
-                marginBottom: isMobile ? '40px' : '80px',
+                fontSize: isMobile ? 'clamp(36px, 8vw, 48px)' : 'clamp(56px, 6vw, 72px)',
+                lineHeight: '1.1',
+                letterSpacing: '-0.02em'
+              }}
+            >
+              <span className="relative inline-block">
+                <span className="absolute -inset-2 bg-gradient-to-r from-gold-warm/5 via-transparent to-gold-warm/5 blur-xl"></span>
+                <span className="relative">Cardápio de Natal 2025</span>
+              </span>
+            </motion.h2>
+
+            {/* Linha decorativa */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="flex items-center justify-center gap-3 mb-6 sm:mb-8"
+            >
+              <div className="h-px w-12 sm:w-16 bg-gold-warm/40"></div>
+              <Star size={16} className="text-gold-warm/60" />
+              <div className="h-px w-12 sm:w-16 bg-gold-warm/40"></div>
+            </motion.div>
+
+            {/* Subtítulo com destaque */}
+            <motion.p 
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="font-body font-medium text-[#6D4C41] max-w-2xl mx-auto leading-relaxed whitespace-nowrap"
+              style={{ 
+                fontSize: isMobile ? 'clamp(15px, 3vw, 18px)' : 'clamp(18px, 2vw, 22px)',
+                letterSpacing: '0.3px',
+                marginBottom: isMobile ? '32px' : '48px',
                 padding: isMobile ? '0 16px' : '0'
               }}
             >
-              Sobremesas autorais da Chef Juliana Andrade — produção limitada
-            </p>
+              <span className="text-gold-warm font-semibold">Sobremesas autorais</span> da{' '}
+              <span className="text-wine font-semibold">Chef Juliana Andrade</span>
+              <span className="text-brown-medium"> — produção limitada</span>
+            </motion.p>
+
+            {/* Decoração inferior */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-gold-warm/20 to-transparent"></div>
           </motion.div>
 
           {/* Grid de Produtos - Otimizado para mobile */}
@@ -400,7 +453,7 @@ export default function Home() {
       </section>
 
       {/* Seção Diferenciais - Moderno e Fluido */}
-      <section id="diferenciais" className="relative bg-gradient-to-b from-off-white to-beige-lightest overflow-hidden" style={{ padding: isMobile ? '60px 0' : '120px 0', position: 'relative' }}>
+      <section id="diferenciais" className="relative bg-gradient-to-b from-off-white to-beige-lightest overflow-hidden" style={{ padding: isMobile ? '32px 0 60px 0' : '48px 0 120px 0', position: 'relative' }}>
         {/* Ornamento decorativo de fundo */}
         <div className="absolute top-20 right-0 w-96 h-96 border border-sage opacity-5 rounded-full" />
         <div className="absolute bottom-20 left-0 w-64 h-64 border border-gold-warm opacity-5 rounded-full" />

@@ -45,12 +45,24 @@ export default function EditProdutoPage() {
 
       if (error) throw error
       if (data) {
+        // Buscar variação padrão para sincronizar preço
+        const { data: defaultVariant } = await supabase
+          .from('variacoes_produtos_natal')
+          .select('preco')
+          .eq('produto_id', produtoId)
+          .eq('is_default', true)
+          .eq('is_active', true)
+          .single()
+
+        // Usar preço da variação padrão se existir, senão usar preço do produto
+        const preco = defaultVariant?.preco || data.preco || 0
+
         setFormData({
           nome: data.nome || '',
           slug: data.slug || '',
           descricao_curta: data.descricao_curta || '',
           descricao_longa: data.descricao_longa || '',
-          preco: data.preco || 0,
+          preco: preco,
           tamanho: data.tamanho || '',
           fotos: data.fotos || [],
           destaque: data.destaque || false,
@@ -143,6 +155,26 @@ export default function EditProdutoPage() {
           .select('*')
 
         if (error) throw error
+        
+        // Sincronizar preço com a variação padrão (se existir)
+        const { data: defaultVariant, error: variantError } = await supabase
+          .from('variacoes_produtos_natal')
+          .select('*')
+          .eq('produto_id', produtoId)
+          .eq('is_default', true)
+          .eq('is_active', true)
+          .single()
+
+        if (!variantError && defaultVariant) {
+          // Se a variação padrão existe e tem preço diferente, atualizar
+          if (Math.abs(defaultVariant.preco - formData.preco) > 0.01) {
+            await supabase
+              .from('variacoes_produtos_natal')
+              .update({ preco: formData.preco })
+              .eq('id', defaultVariant.id)
+          }
+        }
+        
         alert('Produto atualizado com sucesso!')
       }
 
@@ -287,10 +319,20 @@ export default function EditProdutoPage() {
                 type="number"
                 required
                 step="0.01"
+                min="0.01"
                 value={formData.preco}
-                onChange={(e) => handleChange('preco', parseFloat(e.target.value))}
+                onChange={(e) => handleChange('preco', parseFloat(e.target.value) || 0)}
+                placeholder="396.98"
                 className="w-full px-4 py-4 border-2 border-beige-medium rounded-xl focus:border-gold-warm focus:ring-2 focus:ring-gold-warm/20 focus:outline-none font-body text-sm bg-beige-lightest/50 transition-all"
               />
+              {formData.preco > 0 && (
+                <p className="mt-2 text-xs text-brown-medium font-body">
+                  Valor formatado: {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                  }).format(formData.preco)}
+                </p>
+              )}
             </div>
 
             {/* Estoque */}
