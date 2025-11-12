@@ -12,8 +12,9 @@ import ChristmasOrnaments from '@/components/ChristmasOrnaments'
 import ChefSection from '@/components/ChefSection'
 import LimitedProduction from '@/components/LimitedProduction'
 import { supabase } from '@/lib/supabase'
-import { Produto } from '@/types/database'
+import { Produto, VariacaoProduto } from '@/types/database'
 import { getLastSection } from '@/lib/storage'
+import { createVariantsMap } from '@/lib/variants'
 
 // Hook para detectar mobile
 function useIsMobile() {
@@ -141,6 +142,7 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
 
 export default function Home() {
   const [produtos, setProdutos] = useState<Produto[]>([])
+  const [variantsMap, setVariantsMap] = useState<Map<string, VariacaoProduto[]>>(new Map())
   const [loading, setLoading] = useState(true)
   const [configuracoes, setConfiguracoes] = useState<any>({})
   const isMobile = useIsMobile()
@@ -184,23 +186,45 @@ export default function Home() {
 
   const loadData = async () => {
     try {
-      // Carregar produtos (tabela produtos_natal)
-      const { data: produtosData, error: produtosError } = await supabase
-        .from('produtos_natal')
-        .select('*')
-        .order('ordem', { ascending: true })
+      // Carregar produtos e variações em paralelo para melhor performance
+      const [produtosResponse, variacoesResponse, configResponse] = await Promise.all([
+        // Carregar produtos (tabela produtos_natal)
+        supabase
+          .from('produtos_natal')
+          .select('*')
+          .order('ordem', { ascending: true }),
+        
+        // Carregar TODAS as variações ativas de uma vez (carregamento em lote)
+        supabase
+          .from('variacoes_produtos_natal')
+          .select('*')
+          .eq('is_active', true)
+          .order('ordem_exibicao', { ascending: true })
+          .order('created_at', { ascending: true }),
+        
+        // Carregar configurações
+        supabase
+          .from('configuracoes_site')
+          .select('*')
+      ])
 
-      if (produtosError) throw produtosError
-      setProdutos(produtosData || [])
+      // Verificar erros
+      if (produtosResponse.error) throw produtosResponse.error
+      if (variacoesResponse.error) throw variacoesResponse.error
+      if (configResponse.error) throw configResponse.error
 
-      // Carregar configurações
-      const { data: configData, error: configError } = await supabase
-        .from('configuracoes_site')
-        .select('*')
+      const produtosData = produtosResponse.data || []
+      const variacoesData = variacoesResponse.data || []
+      const configData = configResponse.data || []
 
-      if (configError) throw configError
+      // Criar mapa de variações por produto_id
+      const map = createVariantsMap(produtosData, variacoesData)
       
-      const configMap = configData?.reduce((acc: any, item: any) => {
+      setProdutos(produtosData)
+      setVariantsMap(map)
+
+      // Processar configurações
+      const configMap = configData.reduce((acc: any, item: any) => {
         acc[item.chave] = item.valor
         return acc
       }, {})
@@ -439,9 +463,17 @@ export default function Home() {
               rowGap: isMobile ? '32px' : '60px'
             }}
           >
-            {produtos.map((produto, index) => (
-              <ProductCard key={produto.id} produto={produto} index={index} />
-            ))}
+            {produtos.map((produto, index) => {
+              const variants = variantsMap.get(produto.id) || []
+              return (
+                <ProductCard 
+                  key={produto.id} 
+                  produto={produto} 
+                  index={index}
+                  variants={variants}
+                />
+              )
+            })}
           </div>
 
           {produtos.length === 0 && (

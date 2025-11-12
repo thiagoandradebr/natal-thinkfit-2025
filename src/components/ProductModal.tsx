@@ -5,20 +5,22 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, ShoppingBag, Star, Sparkles } from 'lucide-react'
 import { Produto, VariacaoProduto } from '@/types/database'
 import { useCart } from '@/contexts/CartContext'
-import { supabase } from '@/lib/supabase'
 import ProductVariantSelector from './ProductVariantSelector'
+import { getDefaultVariant } from '@/lib/variants'
 
 interface ProductModalProps {
   produto: Produto
+  variants?: VariacaoProduto[] // Variações pré-carregadas
   onClose: () => void
 }
 
-export default function ProductModal({ produto, onClose }: ProductModalProps) {
+export default function ProductModal({ produto, variants: propsVariants = [], onClose }: ProductModalProps) {
   const { addToCart } = useCart()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [variants, setVariants] = useState<VariacaoProduto[]>([])
   const [selectedVariant, setSelectedVariant] = useState<VariacaoProduto | null>(null)
-  const [loadingVariants, setLoadingVariants] = useState(true)
+
+  // Usar variações recebidas via props (já carregadas em lote)
+  const variants = propsVariants
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -35,66 +37,35 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
     setCurrentImageIndex((prev) => (prev - 1 + produto.fotos.length) % produto.fotos.length)
   }
 
-  // Carregar variações do produto
+  // Selecionar variação padrão quando as variações mudarem
   useEffect(() => {
-    const loadVariants = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('variacoes_produtos_natal')
-          .select('*')
-          .eq('produto_id', produto.id)
-          .eq('is_active', true)
-          .order('ordem_exibicao', { ascending: true })
-          .order('created_at', { ascending: true })
-
-        if (error) throw error
-        
-        if (data && data.length > 0) {
-          setVariants(data)
-          // Selecionar variação padrão ou primeira
-          const defaultVariant = data.find(v => v.is_default) || data[0]
-          setSelectedVariant(defaultVariant)
-        } else {
-          // Se não houver variações, criar uma variação virtual usando o preço do produto
-          const virtualVariant: VariacaoProduto = {
-            id: `virtual-${produto.id}`,
-            produto_id: produto.id,
-            nome_variacao: produto.tamanho || 'Padrão',
-            descricao: produto.descricao_curta || '',
-            preco: produto.preco,
-            is_default: true,
-            ordem_exibicao: 0,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-          setVariants([virtualVariant])
-          setSelectedVariant(virtualVariant)
-        }
-      } catch (error) {
-        console.error('Erro ao carregar variações:', error)
-        // Em caso de erro, criar variação virtual
-        const virtualVariant: VariacaoProduto = {
-          id: `virtual-${produto.id}`,
-          produto_id: produto.id,
-          nome_variacao: produto.tamanho || 'Padrão',
-          descricao: produto.descricao_curta || '',
-          preco: produto.preco,
-          is_default: true,
-          ordem_exibicao: 0,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-        setVariants([virtualVariant])
-        setSelectedVariant(virtualVariant)
-      } finally {
-        setLoadingVariants(false)
-      }
+    if (variants.length > 0) {
+      const defaultVariant = getDefaultVariant(variants)
+      setSelectedVariant(defaultVariant)
     }
+  }, [variants])
 
-    loadVariants()
-  }, [produto.id])
+  // Bloquear scroll do body quando modal abrir
+  useEffect(() => {
+    // Salvar scroll atual
+    const scrollY = window.scrollY
+    
+    // Bloquear scroll do body
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    document.body.style.overflow = 'hidden'
+
+    // Cleanup: restaurar scroll quando modal fechar
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      document.body.style.overflow = ''
+      // Restaurar posição de scroll
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
 
   const handleAddToCart = () => {
     // Criar produto com variação para o carrinho
@@ -108,15 +79,25 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
   }
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        {/* Overlay com Blur Sofisticado */}
+    <motion.div 
+      className="fixed inset-0 z-[1001] flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+        {/* Overlay com Blur Sofisticado - Otimizado */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
           onClick={onClose}
-          className="absolute inset-0 bg-brown-darkest/90 backdrop-blur-xl"
+          className="absolute inset-0 bg-brown-darkest/90"
+          style={{
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            willChange: 'opacity'
+          }}
         />
 
         {/* Modal Content - Design Luxuoso */}
@@ -124,8 +105,9 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
           initial={{ opacity: 0, scale: 0.95, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 30 }}
-          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           className="relative bg-white max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Ribbon Dourado no Topo */}
           <div className="h-1 bg-gradient-to-r from-gold-warm via-gold to-gold-warm" />
@@ -249,7 +231,7 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
               >
                 {produto.nome}
               </motion.h2>
-              {!loadingVariants && selectedVariant ? (
+              {selectedVariant ? (
                 <p className="font-body text-taupe text-sm uppercase tracking-wider mb-6">
                   {selectedVariant.nome_variacao}
                   {selectedVariant.descricao && ` - ${selectedVariant.descricao}`}
@@ -283,7 +265,7 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
               </div>
 
               {/* Seletor de Variações - Só mostra se houver mais de 1 variação real (não virtual) */}
-              {!loadingVariants && variants.length > 1 && !variants.some(v => v.id?.startsWith('virtual-')) && (
+              {variants.length > 1 && !variants.some(v => v.id?.startsWith('virtual-')) && (
                 <div className="mb-6">
                   <ProductVariantSelector
                     variants={variants}
@@ -336,7 +318,6 @@ export default function ProductModal({ produto, onClose }: ProductModalProps) {
             </div>
           </div>
         </motion.div>
-      </div>
-    </AnimatePresence>
+    </motion.div>
   )
 }

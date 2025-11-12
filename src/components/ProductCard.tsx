@@ -1,29 +1,31 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingBag, Star, Sparkles, Eye, Check, MilkOff, Droplet } from 'lucide-react'
 import { Produto, VariacaoProduto } from '@/types/database'
 import { useCart } from '@/contexts/CartContext'
 import ProductModal from './ProductModal'
 import ProductVariantSelector from './ProductVariantSelector'
-import { supabase } from '@/lib/supabase'
+import { getDefaultVariant } from '@/lib/variants'
 
 interface ProductCardProps {
   produto: Produto
   index?: number
+  variants?: VariacaoProduto[] // Variações pré-carregadas
 }
 
-export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
+export default function ProductCard({ produto, index = 0, variants: propsVariants = [] }: ProductCardProps) {
   const { addToCart } = useCart()
   const [showModal, setShowModal] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [isInView, setIsInView] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-  const [variants, setVariants] = useState<VariacaoProduto[]>([])
   const [selectedVariant, setSelectedVariant] = useState<VariacaoProduto | null>(null)
-  const [loadingVariants, setLoadingVariants] = useState(true)
   const cardRef = useRef<HTMLDivElement>(null)
+
+  // Usar variações recebidas via props (já carregadas em lote)
+  const variants = propsVariants
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -47,67 +49,13 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Carregar variações do produto
+  // Selecionar variação padrão quando as variações mudarem
   useEffect(() => {
-    const loadVariants = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('variacoes_produtos_natal')
-          .select('*')
-          .eq('produto_id', produto.id)
-          .eq('is_active', true)
-          .order('ordem_exibicao', { ascending: true })
-          .order('created_at', { ascending: true })
-
-        if (error) throw error
-        
-        if (data && data.length > 0) {
-          setVariants(data)
-          // Selecionar variação padrão ou primeira
-          const defaultVariant = data.find(v => v.is_default) || data[0]
-          setSelectedVariant(defaultVariant)
-        } else {
-          // Se não houver variações, criar uma variação virtual usando o preço do produto
-          // Esta variação virtual representa o próprio produto como variação principal
-          const virtualVariant: VariacaoProduto = {
-            id: `virtual-${produto.id}`,
-            produto_id: produto.id,
-            nome_variacao: produto.tamanho || 'Padrão',
-            descricao: produto.descricao_curta || '',
-            preco: produto.preco, // Usa o preço do produto como variação principal
-            is_default: true,
-            ordem_exibicao: 0,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-          setVariants([virtualVariant])
-          setSelectedVariant(virtualVariant) // Sempre seleciona a variação virtual quando não há variações reais
-        }
-      } catch (error) {
-        console.error('Erro ao carregar variações:', error)
-        // Em caso de erro, criar variação virtual
-        const virtualVariant: VariacaoProduto = {
-          id: `virtual-${produto.id}`,
-          produto_id: produto.id,
-          nome_variacao: produto.tamanho || 'Padrão',
-          descricao: produto.descricao_curta || '',
-          preco: produto.preco,
-          is_default: true,
-          ordem_exibicao: 0,
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-        setVariants([virtualVariant])
-        setSelectedVariant(virtualVariant)
-      } finally {
-        setLoadingVariants(false)
-      }
+    if (variants.length > 0) {
+      const defaultVariant = getDefaultVariant(variants)
+      setSelectedVariant(defaultVariant)
     }
-
-    loadVariants()
-  }, [produto.id])
+  }, [variants])
 
   // Intersection Observer para efeito de entrada
   useEffect(() => {
@@ -396,7 +344,7 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
           </div>
 
           {/* Seletor de Variações - Só mostra se houver mais de 1 variação real (não virtual) */}
-          {!loadingVariants && variants.length > 1 && !variants.some(v => v.id?.startsWith('virtual-')) && (
+          {variants.length > 1 && !variants.some(v => v.id?.startsWith('virtual-')) && (
             <div className="mt-3 pt-3 border-t border-beige-medium">
               <ProductVariantSelector
                 variants={variants}
@@ -408,7 +356,7 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
           )}
 
           {/* Quando há apenas uma variação virtual, garantir que está selecionada */}
-          {!loadingVariants && variants.length === 1 && variants[0]?.id?.startsWith('virtual-') && !selectedVariant && (
+          {variants.length === 1 && variants[0]?.id?.startsWith('virtual-') && !selectedVariant && (
             <div className="mt-3 pt-3 border-t border-beige-medium">
               <div className="text-sm text-brown-medium">
                 {variants[0].nome_variacao}
@@ -419,7 +367,7 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
           {/* Preço e CTA em linha */}
           <div className="flex items-end justify-between pt-4 border-t border-beige-medium">
             <div>
-              {!loadingVariants && selectedVariant ? (
+              {selectedVariant ? (
                 <>
                   <div className="font-body text-[10px] text-brown-light mb-1 uppercase tracking-wider">
                     {selectedVariant.nome_variacao}
@@ -498,12 +446,16 @@ export default function ProductCard({ produto, index = 0 }: ProductCardProps) {
       </motion.div>
 
       {/* Modal de Detalhes */}
-      {showModal && (
-        <ProductModal
-          produto={produto}
-          onClose={() => setShowModal(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showModal && (
+          <ProductModal
+            key={`modal-${produto.id}`}
+            produto={produto}
+            variants={variants}
+            onClose={() => setShowModal(false)}
+          />
+        )}
+      </AnimatePresence>
     </>
   )
 }
