@@ -22,25 +22,8 @@ export function middleware(req: NextRequest) {
     }
   )
 
-  // Proteger rotas /admin/* (exceto /admin/login e /api)
-  // DESABILITADO TEMPORARIAMENTE: O middleware estava causando loops
-  // Deixar apenas o AdminGuard fazer a verificação no lado do cliente
-  // O middleware pode não detectar cookies recém-criados após login
-  // if (
-  //   req.nextUrl.pathname.startsWith('/admin') && 
-  //   !req.nextUrl.pathname.startsWith('/admin/login') &&
-  //   !req.nextUrl.pathname.startsWith('/api')
-  // ) {
-  //   if (!hasAuthToken) {
-  //     const redirectUrl = req.nextUrl.clone()
-  //     redirectUrl.pathname = '/admin/login'
-  //     return NextResponse.redirect(redirectUrl)
-  //   }
-  // }
-
-  // NÃO redirecionar de /admin/login para /admin no middleware
-  // Deixar o AuthContext e a página de login fazerem isso no lado do cliente
-  // Isso evita loops de redirecionamento
+  // Proteção de rotas /admin/* é feita pelo AdminGuard no lado do cliente
+  // O middleware não redireciona para evitar loops com cookies recém-criados
 
   return NextResponse.next()
 }

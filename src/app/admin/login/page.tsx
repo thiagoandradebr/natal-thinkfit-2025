@@ -15,27 +15,14 @@ export default function LoginPage() {
   const { signIn, user, loading: authLoading } = useAuth()
   const router = useRouter()
 
-  // REMOVIDO: Redirecionamento automático quando user existe
-  // Isso estava causando loop com o AdminGuard
-  // Se o usuário já estiver autenticado, o middleware/AdminGuard cuidará do redirecionamento
-
-  // REMOVIDO: Redirecionamento duplicado
-  // O redirecionamento após login é feito pelo AuthContext no signIn
-  // Isso evita múltiplos redirecionamentos e loops
-  // Se o usuário já estiver autenticado ao acessar a página, o AdminGuard ou middleware cuidará disso
+  // Redirecionamento após login é feito pelo AuthContext
+  // AdminGuard cuida do redirecionamento se usuário já estiver autenticado
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     e.stopPropagation()
     
-    console.log('📝 [LoginPage] handleSubmit chamado!')
-    console.log('📝 [LoginPage] Email:', email)
-    console.log('📝 [LoginPage] Password:', password ? '***' : '(vazio)')
-    console.log('📝 [LoginPage] Loading antes:', loading)
-    console.log('📝 [LoginPage] AuthLoading:', authLoading)
-    
     if (loading || authLoading) {
-      console.warn('⚠️ [LoginPage] Já está processando, ignorando submit')
       return
     }
     
@@ -43,11 +30,9 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      console.log('📞 [LoginPage] Chamando signIn...')
       const { error } = await signIn(email, password)
 
       if (error) {
-        console.error('❌ [LoginPage] Erro retornado do signIn:', error)
         // Se o erro for "Invalid login credentials", pode ser que o usuário não exista
         if (error.message?.includes('Invalid login credentials') || error.message?.includes('Invalid')) {
           setError('Credenciais inválidas. Verifique se o usuário existe no Supabase e se a senha está correta.')
@@ -55,14 +40,12 @@ export default function LoginPage() {
           setError(error.message || 'Erro ao fazer login. Verifique suas credenciais.')
         }
         setLoading(false)
-      } else {
-        console.log('✅ [LoginPage] Login bem-sucedido! Aguardando redirecionamento...')
-        // Login bem-sucedido - o redirecionamento será feito pelo AuthContext
-        // Manter loading true para mostrar o estado de "Entrando..."
-        // O redirecionamento acontecerá automaticamente
       }
+      // Login bem-sucedido - o redirecionamento será feito pelo AuthContext
     } catch (err: any) {
-      console.error('💥 [LoginPage] Exceção durante handleSubmit:', err)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Erro ao fazer login:', err)
+      }
       setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.')
       setLoading(false)
     }
@@ -140,7 +123,7 @@ export default function LoginPage() {
           {/* Formulário */}
           <form 
             onSubmit={(e) => {
-              console.log('🖱️ [LoginPage] Formulário onSubmit disparado')
+              // Formulário onSubmit disparado
               handleSubmit(e)
             }} 
             className="space-y-6"
@@ -223,13 +206,7 @@ export default function LoginPage() {
               type="submit"
               disabled={loading || authLoading}
               onClick={(e) => {
-                console.log('🖱️ [LoginPage] Botão clicado')
-                console.log('🖱️ [LoginPage] Loading:', loading)
-                console.log('🖱️ [LoginPage] AuthLoading:', authLoading)
-                console.log('🖱️ [LoginPage] Email:', email)
-                console.log('🖱️ [LoginPage] Password:', password ? '***' : '(vazio)')
                 if (loading || authLoading) {
-                  console.warn('⚠️ [LoginPage] Botão desabilitado!')
                   e.preventDefault()
                 }
               }}
@@ -268,7 +245,7 @@ export default function LoginPage() {
             {user && (
               <button
                 onClick={async () => {
-                  console.log('🧹 [LoginPage] Limpando sessão...')
+                  // Limpando sessão
                   const { supabase } = await import('@/lib/supabase')
                   await supabase.auth.signOut()
                   window.location.reload()

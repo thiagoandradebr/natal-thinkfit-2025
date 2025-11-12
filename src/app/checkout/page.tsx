@@ -91,9 +91,10 @@ export default function CheckoutPage() {
       let data
       try {
         data = await response.json()
-        console.log('📥 Resposta do servidor:', { status: response.status, data })
       } catch (jsonError) {
-        console.error('❌ Erro ao processar JSON da resposta:', jsonError)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Erro ao processar JSON da resposta:', jsonError)
+        }
         setMessage({ 
           type: 'error', 
           text: 'Erro ao processar resposta do servidor. Tente novamente.'
@@ -104,7 +105,6 @@ export default function CheckoutPage() {
 
       // Verificar status da resposta
       if (!response.ok) {
-        console.error('❌ Erro na resposta:', response.status, data)
         setMessage({ 
           type: 'error', 
           text: data.error || `Erro ao processar pedido (${response.status}). Tente novamente.`
@@ -115,7 +115,6 @@ export default function CheckoutPage() {
 
       // Validar se o pedido foi realmente criado
       if (!data.success || !data.pedido_id) {
-        console.error('❌ Pedido não foi criado - resposta inválida:', data)
         setMessage({ 
           type: 'error', 
           text: data.error || 'Erro ao criar pedido. Por favor, tente novamente.'
@@ -125,8 +124,6 @@ export default function CheckoutPage() {
       }
 
       // Só limpar e mostrar sucesso se tudo estiver OK
-      console.log('✅ Pedido criado com sucesso! ID:', data.pedido_id)
-      
       // Salvar nome do cliente antes de limpar o formulário
       setNomeCliente(formData.nome)
       
@@ -140,8 +137,6 @@ export default function CheckoutPage() {
         text: pedidoIdShort // Passar apenas o ID, o texto será renderizado no componente
       })
       
-      console.log('✅ Mensagem de sucesso definida')
-      
       // Scroll para o topo para mostrar a mensagem
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -149,7 +144,6 @@ export default function CheckoutPage() {
       
       // Limpar carrinho e formulário após um delay maior para garantir que a mensagem apareça
       setTimeout(() => {
-        console.log('🧹 Limpando carrinho e formulário...')
         clearCart()
         clearCheckoutForm()
         
@@ -161,13 +155,13 @@ export default function CheckoutPage() {
           formaPagamento: 'pix',
           dataEntrega: '',
         })
-        console.log('✅ Carrinho e formulário limpos')
       }, 1000) // Delay maior para garantir que a mensagem apareça primeiro
       
       setLoading(false)
-      console.log('✅ Processo de finalização concluído')
     } catch (error: any) {
-      console.error('❌ Erro ao enviar pedido:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Erro ao enviar pedido:', error)
+      }
       setMessage({ 
         type: 'error', 
         text: `Erro ao enviar pedido: ${error?.message || 'Verifique sua conexão.'}` 

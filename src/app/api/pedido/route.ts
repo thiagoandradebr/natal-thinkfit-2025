@@ -4,13 +4,13 @@ import { getServiceSupabase } from '@/lib/supabase'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    console.log('📦 Dados recebidos:', JSON.stringify(body, null, 2))
+    // Dados recebidos do checkout
     
     const { nome, telefone, email, itens, total, endereco_entrega, forma_pagamento, data_entrega } = body
 
     // Validações básicas
     if (!nome || !telefone || !itens || itens.length === 0 || !endereco_entrega || !forma_pagamento || !data_entrega) {
-      console.error('❌ Validação falhou:', { nome, telefone, itens: itens?.length, endereco_entrega, forma_pagamento, data_entrega })
+      // Validação falhou
       return NextResponse.json(
         { error: 'Dados incompletos. Preencha todos os campos obrigatórios, incluindo a data de entrega.' },
         { status: 400 }
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     // Validar estrutura dos itens
     if (!Array.isArray(itens)) {
-      console.error('❌ Itens não é um array:', itens)
+      // Itens não é um array
       return NextResponse.json(
         { error: 'Formato inválido: itens deve ser um array.' },
         { status: 400 }
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     // Validar cada item
     for (const item of itens) {
       if (!item.produto_id || !item.nome || item.preco === undefined || item.quantidade === undefined) {
-        console.error('❌ Item inválido:', item)
+        // Item inválido
         return NextResponse.json(
           { error: `Item inválido: ${JSON.stringify(item)}` },
           { status: 400 }
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     try {
       supabase = getServiceSupabase()
     } catch (supabaseError: any) {
-      console.error('❌ Erro ao criar cliente Supabase:', supabaseError)
+      // Erro ao criar cliente Supabase
       return NextResponse.json(
         { 
           error: 'Erro de configuração do servidor. Verifique as variáveis de ambiente.',
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       pedidoData.email = String(email).trim()
     }
 
-    console.log('💾 Dados do pedido preparados:', JSON.stringify(pedidoData, null, 2))
+    // Dados do pedido preparados
 
     // Inserir pedido no banco de dados (tabela pedidos_natal)
     const { data: pedido, error: pedidoError } = await supabase
@@ -86,9 +86,9 @@ export async function POST(request: Request) {
       .single()
 
     if (pedidoError) {
-      console.error('❌ Erro ao criar pedido:', pedidoError)
-      console.error('📋 Detalhes do erro:', JSON.stringify(pedidoError, null, 2))
-      console.error('📦 Dados tentados:', JSON.stringify(pedidoData, null, 2))
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Erro ao criar pedido:', pedidoError)
+      }
       
       // Retornar mensagem mais detalhada em desenvolvimento
       const errorMessage = process.env.NODE_ENV === 'development' 
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('✅ Pedido criado com sucesso:', pedido?.id)
+    // Pedido criado com sucesso
 
     // Buscar configurações para envio de notificações
     const { data: configs } = await supabase
@@ -167,7 +167,9 @@ ${itensTexto}
         }),
       ])
     } catch (notificationError) {
-      console.error('Erro ao enviar notificações:', notificationError)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Erro ao enviar notificações:', notificationError)
+      }
       // Não falhar o pedido se notificações falharem
     }
 
@@ -178,12 +180,13 @@ ${itensTexto}
       message: 'Pedido recebido com sucesso!',
     }
     
-    console.log('✅ Retornando resposta de sucesso:', JSON.stringify(responseData, null, 2))
+    // Retornando resposta de sucesso
     
     return NextResponse.json(responseData, { status: 200 })
   } catch (error: any) {
-    console.error('Erro no endpoint de pedido:', error)
-    console.error('Stack trace:', error?.stack)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Erro no endpoint de pedido:', error)
+    }
     return NextResponse.json(
       { error: `Erro interno do servidor: ${error?.message || 'Erro desconhecido'}` },
       { status: 500 }

@@ -36,7 +36,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
           // Verificar novamente se ainda não há usuário antes de redirecionar
           // Isso evita redirecionar se o usuário foi autenticado durante o delay
           if (!user) {
-            console.log('🔄 [AdminGuard] Nenhum usuário encontrado, redirecionando para login...')
+            // Nenhum usuário encontrado, redirecionando para login
             setHasRedirected(true)
             router.replace('/admin/login')
           }
