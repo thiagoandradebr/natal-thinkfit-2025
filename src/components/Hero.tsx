@@ -37,8 +37,13 @@ export default function Hero({
     offset: ["start start", "end start"]
   })
   
-  const y = useTransform(scrollYProgress, [0, 1], ['0%', '30%'])
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+  // Garantir que os valores não sejam NaN
+  const y = useTransform(scrollYProgress, [0, 1], ['0%', '30%'], {
+    clamp: true
+  })
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0], {
+    clamp: true
+  })
 
   const scrollToPedido = () => {
     const element = document.getElementById('pedido')

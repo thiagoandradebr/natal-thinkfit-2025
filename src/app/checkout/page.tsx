@@ -13,30 +13,87 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { cart, removeFromCart, updateQuantity, clearCart, getTotal } = useCart()
   
-  // Carregar dados salvos do formulário
-  const savedFormData = getCheckoutForm()
+  // Estado inicial vazio - será carregado do Supabase ou localStorage
   const [formData, setFormData] = useState({
-    nome: savedFormData?.nome || '',
-    telefone: savedFormData?.telefone || '',
-    endereco: savedFormData?.endereco || '',
-    formaPagamento: (savedFormData?.formaPagamento || 'pix') as 'pix' | 'cartao',
-    dataEntrega: (savedFormData?.dataEntrega || '') as '' | '24/12' | '30/12',
+    nome: '',
+    telefone: '',
+    tipoEntrega: '' as '' | 'entrega' | 'retirada',
+    endereco: '',
+    formaPagamento: 'pix' as 'pix' | 'cartao',
+    dataEntrega: '' as '' | '24/12' | '30/12',
   })
   const [loading, setLoading] = useState(false)
+  const [loadingDraft, setLoadingDraft] = useState(true) // Loading inicial para carregar rascunho
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [pedidoConfirmado, setPedidoConfirmado] = useState(false)
   const [nomeCliente, setNomeCliente] = useState<string>('')
 
+  // Carregar rascunho do Supabase (com fallback para localStorage)
+  useEffect(() => {
+    const loadDraft = async () => {
+      try {
+        // Tentar carregar do Supabase primeiro
+        const response = await fetch('/api/checkout/draft')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.formData) {
+            setFormData({
+              nome: data.formData.nome || '',
+              telefone: data.formData.telefone || '',
+              tipoEntrega: (data.formData.tipoEntrega || '') as '' | 'entrega' | 'retirada',
+              endereco: data.formData.endereco || '',
+              formaPagamento: (data.formData.formaPagamento || 'pix') as 'pix' | 'cartao',
+              dataEntrega: (data.formData.dataEntrega || '') as '' | '24/12' | '30/12',
+            })
+            setLoadingDraft(false)
+            return
+          }
+        }
+      } catch (error) {
+        console.warn('Erro ao carregar rascunho do Supabase, usando localStorage:', error)
+      }
+
+      // Fallback: carregar do localStorage
+      const savedFormData = getCheckoutForm()
+      if (savedFormData) {
+        setFormData({
+          nome: savedFormData.nome || '',
+          telefone: savedFormData.telefone || '',
+          tipoEntrega: (savedFormData.tipoEntrega || '') as '' | 'entrega' | 'retirada',
+          endereco: savedFormData.endereco || '',
+          formaPagamento: (savedFormData.formaPagamento || 'pix') as 'pix' | 'cartao',
+          dataEntrega: (savedFormData.dataEntrega || '') as '' | '24/12' | '30/12',
+        })
+      }
+      setLoadingDraft(false)
+    }
+
+    loadDraft()
+  }, [])
+
   // Salvar dados do formulário sempre que mudar (com debounce)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (formData.nome || formData.telefone || formData.endereco) {
-        saveCheckoutForm(formData)
+    if (loadingDraft) return // Não salvar enquanto está carregando
+
+    const timer = setTimeout(async () => {
+      if (formData.nome || formData.telefone || formData.endereco || formData.tipoEntrega) {
+        try {
+          // Tentar salvar no Supabase primeiro
+          await fetch('/api/checkout/draft', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ formData }),
+          })
+        } catch (error) {
+          // Fallback: salvar no localStorage se Supabase falhar
+          console.warn('Erro ao salvar rascunho no Supabase, usando localStorage:', error)
+          saveCheckoutForm(formData)
+        }
       }
     }, 500) // Debounce de 500ms
     
     return () => clearTimeout(timer)
-  }, [formData])
+  }, [formData, loadingDraft])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -53,8 +110,14 @@ export default function CheckoutPage() {
       return
     }
 
-    if (!formData.nome || !formData.telefone || !formData.endereco || !formData.dataEntrega) {
-      setMessage({ type: 'error', text: 'Preencha todos os campos obrigatórios, incluindo a data de entrega.' })
+    if (!formData.nome || !formData.telefone || !formData.tipoEntrega || !formData.dataEntrega) {
+      setMessage({ type: 'error', text: 'Preencha todos os campos obrigatórios, incluindo o tipo de entrega e a data.' })
+      return
+    }
+
+    // Se for entrega, endereço é obrigatório
+    if (formData.tipoEntrega === 'entrega' && !formData.endereco) {
+      setMessage({ type: 'error', text: 'Preencha o endereço de entrega.' })
       return
     }
 
@@ -71,7 +134,8 @@ export default function CheckoutPage() {
           nome: formData.nome,
           telefone: formData.telefone,
           email: '', // Não obrigatório no novo sistema
-          endereco_entrega: formData.endereco,
+          tipo_entrega: formData.tipoEntrega,
+          endereco_entrega: formData.tipoEntrega === 'entrega' ? formData.endereco : 'Retirada no local',
           forma_pagamento: formData.formaPagamento,
           data_entrega: formData.dataEntrega,
           itens: cart.map(({ produto, ...item }) => ({
@@ -143,14 +207,22 @@ export default function CheckoutPage() {
       }, 100)
       
       // Limpar carrinho e formulário após um delay maior para garantir que a mensagem apareça
-      setTimeout(() => {
+      setTimeout(async () => {
         clearCart()
         clearCheckoutForm()
+        
+        // Limpar rascunho do Supabase
+        try {
+          await fetch('/api/checkout/draft', { method: 'DELETE' })
+        } catch (error) {
+          console.warn('Erro ao limpar rascunho do Supabase:', error)
+        }
         
         // Resetar formulário
         setFormData({
           nome: '',
           telefone: '',
+          tipoEntrega: '',
           endereco: '',
           formaPagamento: 'pix',
           dataEntrega: '',
@@ -631,31 +703,85 @@ export default function CheckoutPage() {
                     />
                   </div>
 
-                  {/* Endereço */}
-                  <div>
-                    <label 
-                      className="block font-body font-medium text-[#6D4C41] uppercase mb-1.5"
-                      style={{ fontSize: '11px', letterSpacing: '1.5px' }}
-                    >
-                      Endereço de Entrega *
-                    </label>
-                    <textarea
-                      required
-                      value={formData.endereco}
-                      onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
-                      className="w-full bg-[#FAFAF8] text-[#3E2723] border border-[#E0DED9] px-4 py-2.5 font-body focus:border-gold-warm focus:outline-none h-24 resize-none transition-colors"
-                      style={{ borderRadius: '0px', fontSize: '14px' }}
-                      placeholder="Rua, número, complemento, bairro, cidade..."
-                    />
-                  </div>
-
-                  {/* Data de Entrega */}
+                  {/* Tipo de Entrega */}
                   <div>
                     <label 
                       className="block font-body font-medium text-[#6D4C41] uppercase mb-2"
                       style={{ fontSize: '11px', letterSpacing: '1.5px' }}
                     >
-                      Data de Entrega *
+                      Tipo de Entrega *
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="flex items-center justify-center gap-2 p-3 border-2 border-[#E0DED9] cursor-pointer hover:border-gold-warm transition-colors bg-[#FAFAF8] relative group">
+                        <input
+                          type="radio"
+                          name="tipoEntrega"
+                          value="entrega"
+                          checked={formData.tipoEntrega === 'entrega'}
+                          onChange={(e) => setFormData({ ...formData, tipoEntrega: e.target.value as 'entrega' | 'retirada' })}
+                          className="w-4 h-4 border border-gold-warm checked:bg-gold-warm focus:ring-0"
+                        />
+                        <div className="flex flex-col items-center">
+                          <span className="font-body text-[#3E2723] font-medium" style={{ fontSize: '13px' }}>
+                            Entrega
+                          </span>
+                        </div>
+                        {formData.tipoEntrega === 'entrega' && (
+                          <div className="absolute -top-1.5 -right-1.5">
+                            <Star size={14} className="text-gold-warm" fill="currentColor" />
+                          </div>
+                        )}
+                      </label>
+                      <label className="flex items-center justify-center gap-2 p-3 border-2 border-[#E0DED9] cursor-pointer hover:border-gold-warm transition-colors bg-[#FAFAF8] relative group">
+                        <input
+                          type="radio"
+                          name="tipoEntrega"
+                          value="retirada"
+                          checked={formData.tipoEntrega === 'retirada'}
+                          onChange={(e) => setFormData({ ...formData, tipoEntrega: e.target.value as 'entrega' | 'retirada', endereco: '' })}
+                          className="w-4 h-4 border border-gold-warm checked:bg-gold-warm focus:ring-0"
+                        />
+                        <div className="flex flex-col items-center">
+                          <span className="font-body text-[#3E2723] font-medium" style={{ fontSize: '13px' }}>
+                            Retirada
+                          </span>
+                        </div>
+                        {formData.tipoEntrega === 'retirada' && (
+                          <div className="absolute -top-1.5 -right-1.5">
+                            <Star size={14} className="text-gold-warm" fill="currentColor" />
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Endereço - Mostrar apenas se for entrega */}
+                  {formData.tipoEntrega === 'entrega' && (
+                    <div>
+                      <label 
+                        className="block font-body font-medium text-[#6D4C41] uppercase mb-1.5"
+                        style={{ fontSize: '11px', letterSpacing: '1.5px' }}
+                      >
+                        Endereço de Entrega *
+                      </label>
+                      <textarea
+                        required={formData.tipoEntrega === 'entrega'}
+                        value={formData.endereco}
+                        onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
+                        className="w-full bg-[#FAFAF8] text-[#3E2723] border border-[#E0DED9] px-4 py-2.5 font-body focus:border-gold-warm focus:outline-none h-24 resize-none transition-colors"
+                        style={{ borderRadius: '0px', fontSize: '14px' }}
+                        placeholder="Rua, número, complemento, bairro, cidade..."
+                      />
+                    </div>
+                  )}
+
+                  {/* Data de Entrega/Retirada */}
+                  <div>
+                    <label 
+                      className="block font-body font-medium text-[#6D4C41] uppercase mb-2"
+                      style={{ fontSize: '11px', letterSpacing: '1.5px' }}
+                    >
+                      Data {formData.tipoEntrega === 'entrega' ? 'de Entrega' : 'de Retirada'} *
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       <label className="flex items-center justify-center gap-2 p-3 border-2 border-[#E0DED9] cursor-pointer hover:border-gold-warm transition-colors bg-[#FAFAF8] relative group">

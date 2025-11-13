@@ -6,13 +6,21 @@ export async function POST(request: Request) {
     const body = await request.json()
     // Dados recebidos do checkout
     
-    const { nome, telefone, email, itens, total, endereco_entrega, forma_pagamento, data_entrega } = body
+    const { nome, telefone, email, itens, total, tipo_entrega, endereco_entrega, forma_pagamento, data_entrega } = body
 
     // Validações básicas
-    if (!nome || !telefone || !itens || itens.length === 0 || !endereco_entrega || !forma_pagamento || !data_entrega) {
+    if (!nome || !telefone || !itens || itens.length === 0 || !tipo_entrega || !forma_pagamento || !data_entrega) {
       // Validação falhou
       return NextResponse.json(
-        { error: 'Dados incompletos. Preencha todos os campos obrigatórios, incluindo a data de entrega.' },
+        { error: 'Dados incompletos. Preencha todos os campos obrigatórios, incluindo o tipo de entrega e a data.' },
+        { status: 400 }
+      )
+    }
+
+    // Se for entrega, endereço é obrigatório
+    if (tipo_entrega === 'entrega' && !endereco_entrega) {
+      return NextResponse.json(
+        { error: 'Endereço de entrega é obrigatório quando o tipo de entrega é "Entrega".' },
         { status: 400 }
       )
     }
@@ -55,6 +63,7 @@ export async function POST(request: Request) {
     const pedidoData: any = {
       nome_cliente: String(nome).trim(),
       telefone_whatsapp: String(telefone).trim(),
+      tipo_entrega: String(tipo_entrega).trim(),
       itens: itens.map((item: any) => ({
         produto_id: String(item.produto_id),
         variacao_id: item.variacao_id ? String(item.variacao_id) : undefined,
@@ -65,7 +74,7 @@ export async function POST(request: Request) {
         quantidade: Number(item.quantidade),
       })),
       total: Number(total),
-      endereco_entrega: String(endereco_entrega).trim(),
+      endereco_entrega: endereco_entrega ? String(endereco_entrega).trim() : 'Retirada no local',
       metodo_pagamento: String(forma_pagamento),
       data_entrega: String(data_entrega),
       status_pagamento: 'pendente',
@@ -123,12 +132,19 @@ export async function POST(request: Request) {
         return `• ${item.nome}${variacaoInfo} - ${item.quantidade}x - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco * item.quantidade)}`
       }).join('\n')
       
+      const tipoEntregaTexto = pedido.tipo_entrega === 'entrega' ? 'Entrega' : 'Retirada'
+      const enderecoTexto = pedido.tipo_entrega === 'entrega' 
+        ? `*Endereço:* ${pedido.endereco_entrega}`
+        : '*Retirada no local*'
+      const dataTexto = pedido.tipo_entrega === 'entrega' ? 'Data de Entrega' : 'Data de Retirada'
+      
       const mensagem = `🎄 *NOVO PEDIDO - ThinkFit Natal 2025* 🎄
 
 *Cliente:* ${pedido.nome_cliente}
 *Telefone:* ${pedido.telefone_whatsapp}
-*Endereço:* ${pedido.endereco_entrega}
-*Data de Entrega:* ${pedido.data_entrega || 'Não informada'}
+*Tipo:* ${tipoEntregaTexto}
+${enderecoTexto}
+*${dataTexto}:* ${pedido.data_entrega || 'Não informada'}
 *Forma de Pagamento:* ${pedido.metodo_pagamento === 'pix' ? 'PIX' : 'Link Cartão'}
 
 *Itens:*
