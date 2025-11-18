@@ -91,6 +91,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const nomeCompleto = variacaoNome ? `${produto.nome} (${variacaoNome})` : produto.nome
           notifyCallback(`${nomeCompleto} adicionado ao carrinho! 🎄`)
         }
+        
+        // Rastrear evento AddToCart no Facebook Pixel
+        if (typeof window !== 'undefined' && window.fbq) {
+          try {
+            window.fbq('track', 'AddToCart', {
+              content_name: produto.nome,
+              content_ids: [produto.id],
+              content_type: 'product',
+              value: preco,
+              currency: 'BRL',
+            })
+          } catch (error) {
+            console.error('Erro ao rastrear AddToCart:', error)
+          }
+        }
+        
         return [
           ...prevCart,
           {

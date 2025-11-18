@@ -1,17 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Star, Sparkles, Calendar, CheckCircle2, Gift, Heart, Phone } from 'lucide-react'
+import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, Star, Sparkles, Calendar, CheckCircle2, Gift, Heart, Phone, Truck, Store, Shield } from 'lucide-react'
 import { useCart } from '@/contexts/CartContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { saveCheckoutForm, getCheckoutForm, clearCheckoutForm } from '@/lib/storage'
+import { useToast } from '@/components/ToastProvider'
+import { useFacebookPixel } from '@/hooks/useFacebookPixel'
 
 export default function CheckoutPage() {
   const router = useRouter()
   const { cart, removeFromCart, updateQuantity, clearCart, getTotal } = useCart()
+  const { showToast, showAlert } = useToast()
+  const { trackEvent } = useFacebookPixel()
   
   // Estado inicial vazio - será carregado do Supabase ou localStorage
   const [formData, setFormData] = useState({
@@ -71,6 +75,24 @@ export default function CheckoutPage() {
     loadDraft()
   }, [])
 
+  // Rastrear InitiateCheckout quando a página carrega com itens no carrinho
+  useEffect(() => {
+    if (cart.length > 0 && !loadingDraft) {
+      const subtotal = getTotal()
+      trackEvent('InitiateCheckout', {
+        value: subtotal,
+        currency: 'BRL',
+        num_items: cart.reduce((sum, item) => sum + item.quantidade, 0),
+        content_ids: cart.map(item => item.produto_id),
+        contents: cart.map(item => ({
+          id: item.produto_id,
+          quantity: item.quantidade,
+          item_price: item.preco,
+        })),
+      })
+    }
+  }, [cart.length, loadingDraft, getTotal, trackEvent])
+
   // Salvar dados do formulário sempre que mudar (com debounce)
   useEffect(() => {
     if (loadingDraft) return // Não salvar enquanto está carregando
@@ -95,11 +117,29 @@ export default function CheckoutPage() {
     return () => clearTimeout(timer)
   }, [formData, loadingDraft])
 
+  // Custo fixo de entrega
+  const CUSTO_ENTREGA = 40
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(price)
+  }
+
+  // Calcular subtotal (produtos)
+  const getSubtotal = () => {
+    return getTotal()
+  }
+
+  // Calcular custo de entrega
+  const getCustoEntrega = () => {
+    return formData.tipoEntrega === 'entrega' ? CUSTO_ENTREGA : 0
+  }
+
+  // Calcular total final
+  const getTotalFinal = () => {
+    return getSubtotal() + getCustoEntrega()
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,12 +152,42 @@ export default function CheckoutPage() {
 
     if (!formData.nome || !formData.telefone || !formData.tipoEntrega || !formData.dataEntrega) {
       setMessage({ type: 'error', text: 'Preencha todos os campos obrigatórios, incluindo o tipo de entrega e a data.' })
+      // Alertas específicos
+      if (!formData.tipoEntrega) {
+        showAlert(
+          'Selecione se deseja receber por entrega ou retirada no local.',
+          'warning',
+          '⚠️ Tipo de Entrega Obrigatório',
+          5000
+        )
+      } else if (!formData.dataEntrega) {
+        showAlert(
+          'Escolha a data de entrega ou retirada para finalizar seu pedido.',
+          'warning',
+          '📅 Data Obrigatória',
+          5000
+        )
+      }
       return
     }
 
     // Se for entrega, endereço é obrigatório
     if (formData.tipoEntrega === 'entrega' && !formData.endereco) {
       setMessage({ type: 'error', text: 'Preencha o endereço de entrega.' })
+      showAlert(
+        'Para finalizar o pedido com entrega, é necessário preencher o endereço completo. Por favor, preencha o campo de endereço acima.',
+        'warning',
+        '📍 Endereço de Entrega Obrigatório',
+          6000
+      )
+      // Scroll suave para o campo de endereço
+      setTimeout(() => {
+        const enderecoField = document.querySelector('textarea[placeholder*="Rua"]') as HTMLElement
+        if (enderecoField) {
+          enderecoField.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          enderecoField.focus()
+        }
+      }, 500)
       return
     }
 
@@ -147,7 +217,7 @@ export default function CheckoutPage() {
             preco: Number(item.preco),
             quantidade: Number(item.quantidade),
           })),
-          total: getTotal(),
+          total: getTotalFinal(),
         }),
       })
 
@@ -190,6 +260,21 @@ export default function CheckoutPage() {
       // Só limpar e mostrar sucesso se tudo estiver OK
       // Salvar nome do cliente antes de limpar o formulário
       setNomeCliente(formData.nome)
+      
+      // Rastrear evento Purchase no Facebook Pixel
+      const totalFinal = getTotalFinal()
+      trackEvent('Purchase', {
+        value: totalFinal,
+        currency: 'BRL',
+        content_ids: cart.map(item => item.produto_id),
+        contents: cart.map(item => ({
+          id: item.produto_id,
+          quantity: item.quantidade,
+          item_price: item.preco,
+        })),
+        num_items: cart.reduce((sum, item) => sum + item.quantidade, 0),
+        order_id: data.pedido_id,
+      })
       
       // Marcar pedido como confirmado ANTES de qualquer outra ação
       setPedidoConfirmado(true)
@@ -543,19 +628,96 @@ export default function CheckoutPage() {
               Voltar
             </button>
             
-            {/* Ornamento decorativo */}
-            <div className="flex items-center justify-center gap-4 mb-4 opacity-60">
-              <div className="h-[1px] w-12 bg-gold-warm"></div>
-              <Star size={20} className="text-gold-warm" fill="currentColor" />
-              <div className="h-[1px] w-12 bg-gold-warm"></div>
+            {/* Header elegante e sofisticado */}
+            <div className="relative mb-10">
+              {/* Elementos decorativos de fundo sutis */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
+                <div className="absolute top-0 left-1/4 w-32 h-32 border border-gold-warm rounded-full blur-2xl"></div>
+                <div className="absolute bottom-0 right-1/4 w-24 h-24 border border-gold-warm rounded-full blur-xl"></div>
+              </div>
+              
+              {/* Ornamento decorativo superior - mais elegante */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6 }}
+                className="flex items-center justify-center gap-6 mb-7 relative z-10"
+              >
+                <div className="h-px w-20 bg-gradient-to-r from-transparent via-gold-warm/50 to-gold-warm/80"></div>
+                <motion.div
+                  animate={{ 
+                    rotate: [0, 8, -8, 0],
+                    scale: [1, 1.15, 1]
+                  }}
+                  transition={{ 
+                    duration: 4,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    ease: "easeInOut"
+                  }}
+                  className="relative"
+                >
+                  <Star size={20} className="text-gold-warm drop-shadow-sm" fill="currentColor" />
+                  {/* Brilho sutil na estrela */}
+                  <motion.div
+                    animate={{ opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ 
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="absolute inset-0 blur-sm"
+                  >
+                    <Star size={20} className="text-gold-warm" fill="currentColor" />
+                  </motion.div>
+                </motion.div>
+                <div className="h-px w-20 bg-gradient-to-l from-transparent via-gold-warm/50 to-gold-warm/80"></div>
+              </motion.div>
+              
+              {/* Título principal - tipografia refinada */}
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
+                className="font-display font-light text-[#3E2723] mb-5 text-center tracking-wide relative z-10"
+                style={{ 
+                  fontSize: '44px',
+                  letterSpacing: '1px',
+                  fontWeight: 300,
+                  lineHeight: '1.2'
+                }}
+              >
+                Finalizar Pedido
+              </motion.h1>
+              
+              {/* Subtítulo elegante */}
+              <motion.p 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.35, ease: "easeOut" }}
+                className="font-body font-light text-[#8D6E63] text-center max-w-lg mx-auto leading-relaxed relative z-10"
+                style={{ 
+                  fontSize: '15.5px',
+                  letterSpacing: '0.4px',
+                  lineHeight: '1.7',
+                  fontWeight: 300
+                }}
+              >
+                Revise seus produtos e preencha seus dados para concluir seu pedido
+              </motion.p>
+              
+              {/* Linha decorativa inferior sutil com animação */}
+              <motion.div 
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: '100%', opacity: 1 }}
+                transition={{ duration: 1, delay: 0.6, ease: "easeInOut" }}
+                className="relative mt-8 mb-2"
+              >
+                <div className="h-px w-full max-w-sm mx-auto bg-gradient-to-r from-transparent via-[#E0DED9]/60 to-transparent"></div>
+                {/* Pontos decorativos nas extremidades */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#E0DED9] rounded-full"></div>
+              </motion.div>
             </div>
-            
-            <h1 className="font-display font-light text-[#3E2723] mb-3 text-center" style={{ fontSize: '38px' }}>
-              🎄 Finalizar Pedido 🎄
-            </h1>
-            <p className="font-body font-light text-[#8D6E63] text-center" style={{ fontSize: '14px' }}>
-              Revise seus produtos e preencha seus dados para concluir
-            </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -630,17 +792,51 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                <div className="flex justify-between items-center pt-4 border-t-2 border-gold-warm/30 relative">
-                  {/* Decoração natalina no total */}
-                  <div className="absolute -left-2 top-1/2 -translate-y-1/2 opacity-20">
-                    <Sparkles size={16} className="text-gold-warm" />
+                {/* Resumo de valores */}
+                <div className="pt-4 border-t-2 border-gold-warm/30 space-y-3">
+                  {/* Subtotal */}
+                  <div className="flex justify-between items-center">
+                    <span className="font-body text-[#6D4C41]" style={{ fontSize: '14px' }}>
+                      Subtotal
+                    </span>
+                    <span className="font-body text-[#3E2723]" style={{ fontSize: '16px' }}>
+                      {formatPrice(getSubtotal())}
+                    </span>
                   </div>
-                  <span className="font-display text-[#3E2723]" style={{ fontSize: '24px', fontWeight: 400 }}>
-                    Total
-                  </span>
-                  <span className="font-display text-gold-dark" style={{ fontSize: '36px', fontWeight: 500 }}>
-                    {formatPrice(getTotal())}
-                  </span>
+
+                  {/* Custo de entrega (se aplicável) */}
+                  {formData.tipoEntrega === 'entrega' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="flex justify-between items-center"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Truck size={16} className="text-gold-warm" />
+                        <span className="font-body text-[#6D4C41]" style={{ fontSize: '14px' }}>
+                          Entrega
+                        </span>
+                      </div>
+                      <span className="font-body text-[#3E2723]" style={{ fontSize: '16px' }}>
+                        {formatPrice(getCustoEntrega())}
+                      </span>
+                    </motion.div>
+                  )}
+
+                  {/* Total */}
+                  <div className="flex justify-between items-center pt-3 border-t border-gold-warm/20 relative">
+                    {/* Decoração natalina no total */}
+                    <div className="absolute -left-2 top-1/2 -translate-y-1/2 opacity-20">
+                      <Sparkles size={16} className="text-gold-warm" />
+                    </div>
+                    <span className="font-display text-[#3E2723]" style={{ fontSize: '24px', fontWeight: 400 }}>
+                      Total
+                    </span>
+                    <span className="font-display text-gold-dark" style={{ fontSize: '36px', fontWeight: 500 }}>
+                      {formatPrice(getTotalFinal())}
+                    </span>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -706,74 +902,164 @@ export default function CheckoutPage() {
                   {/* Tipo de Entrega */}
                   <div>
                     <label 
-                      className="block font-body font-medium text-[#6D4C41] uppercase mb-2"
+                      className="block font-body font-medium text-[#6D4C41] uppercase mb-3"
                       style={{ fontSize: '11px', letterSpacing: '1.5px' }}
                     >
                       Tipo de Entrega *
                     </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <label className="flex items-center justify-center gap-2 p-3 border-2 border-[#E0DED9] cursor-pointer hover:border-gold-warm transition-colors bg-[#FAFAF8] relative group">
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className={`flex flex-col items-center justify-center gap-2 p-4 border-2 cursor-pointer transition-all relative group ${
+                        formData.tipoEntrega === 'entrega' 
+                          ? 'border-gold-warm bg-gradient-to-br from-gold-warm/10 to-gold-warm/5 shadow-md' 
+                          : 'border-[#E0DED9] bg-[#FAFAF8] hover:border-gold-warm/50'
+                      }`}>
                         <input
                           type="radio"
                           name="tipoEntrega"
                           value="entrega"
                           checked={formData.tipoEntrega === 'entrega'}
-                          onChange={(e) => setFormData({ ...formData, tipoEntrega: e.target.value as 'entrega' | 'retirada' })}
-                          className="w-4 h-4 border border-gold-warm checked:bg-gold-warm focus:ring-0"
+                          onChange={(e) => {
+                            const novoTipo = e.target.value as 'entrega' | 'retirada'
+                            setFormData({ ...formData, tipoEntrega: novoTipo })
+                            // Alerta informativo quando selecionar entrega
+                            if (novoTipo === 'entrega') {
+                              setTimeout(() => {
+                                showAlert(
+                                  'Preencha o campo de endereço de entrega abaixo e escolha a data de entrega para continuar.',
+                                  'info',
+                                  '📦 Informação Importante',
+                                  6000
+                                )
+                              }, 300)
+                            }
+                          }}
+                          className="sr-only"
                         />
+                        <div className={`p-3 rounded-full transition-colors ${
+                          formData.tipoEntrega === 'entrega' 
+                            ? 'bg-gold-warm/20' 
+                            : 'bg-[#E0DED9] group-hover:bg-gold-warm/10'
+                        }`}>
+                          <Truck size={24} className={`${
+                            formData.tipoEntrega === 'entrega' ? 'text-gold-dark' : 'text-[#8D6E63]'
+                          }`} />
+                        </div>
                         <div className="flex flex-col items-center">
-                          <span className="font-body text-[#3E2723] font-medium" style={{ fontSize: '13px' }}>
+                          <span className={`font-body font-medium mb-1 ${
+                            formData.tipoEntrega === 'entrega' ? 'text-[#3E2723]' : 'text-[#6D4C41]'
+                          }`} style={{ fontSize: '14px' }}>
                             Entrega
+                          </span>
+                          <span className="font-body text-gold-dark font-semibold" style={{ fontSize: '12px' }}>
+                            +{formatPrice(CUSTO_ENTREGA)}
                           </span>
                         </div>
                         {formData.tipoEntrega === 'entrega' && (
-                          <div className="absolute -top-1.5 -right-1.5">
-                            <Star size={14} className="text-gold-warm" fill="currentColor" />
-                          </div>
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute -top-2 -right-2"
+                          >
+                            <div className="bg-gold-warm rounded-full p-1">
+                              <CheckCircle2 size={16} className="text-white" fill="currentColor" />
+                            </div>
+                          </motion.div>
                         )}
                       </label>
-                      <label className="flex items-center justify-center gap-2 p-3 border-2 border-[#E0DED9] cursor-pointer hover:border-gold-warm transition-colors bg-[#FAFAF8] relative group">
+                      <label className={`flex flex-col items-center justify-center gap-2 p-4 border-2 cursor-pointer transition-all relative group ${
+                        formData.tipoEntrega === 'retirada' 
+                          ? 'border-gold-warm bg-gradient-to-br from-gold-warm/10 to-gold-warm/5 shadow-md' 
+                          : 'border-[#E0DED9] bg-[#FAFAF8] hover:border-gold-warm/50'
+                      }`}>
                         <input
                           type="radio"
                           name="tipoEntrega"
                           value="retirada"
                           checked={formData.tipoEntrega === 'retirada'}
                           onChange={(e) => setFormData({ ...formData, tipoEntrega: e.target.value as 'entrega' | 'retirada', endereco: '' })}
-                          className="w-4 h-4 border border-gold-warm checked:bg-gold-warm focus:ring-0"
+                          className="sr-only"
                         />
+                        <div className={`p-3 rounded-full transition-colors ${
+                          formData.tipoEntrega === 'retirada' 
+                            ? 'bg-gold-warm/20' 
+                            : 'bg-[#E0DED9] group-hover:bg-gold-warm/10'
+                        }`}>
+                          <Store size={24} className={`${
+                            formData.tipoEntrega === 'retirada' ? 'text-gold-dark' : 'text-[#8D6E63]'
+                          }`} />
+                        </div>
                         <div className="flex flex-col items-center">
-                          <span className="font-body text-[#3E2723] font-medium" style={{ fontSize: '13px' }}>
+                          <span className={`font-body font-medium ${
+                            formData.tipoEntrega === 'retirada' ? 'text-[#3E2723]' : 'text-[#6D4C41]'
+                          }`} style={{ fontSize: '14px' }}>
                             Retirada
+                          </span>
+                          <span className="font-body text-[#8D6E63] text-xs">
+                            Grátis
                           </span>
                         </div>
                         {formData.tipoEntrega === 'retirada' && (
-                          <div className="absolute -top-1.5 -right-1.5">
-                            <Star size={14} className="text-gold-warm" fill="currentColor" />
-                          </div>
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute -top-2 -right-2"
+                          >
+                            <div className="bg-gold-warm rounded-full p-1">
+                              <CheckCircle2 size={16} className="text-white" fill="currentColor" />
+                            </div>
+                          </motion.div>
                         )}
                       </label>
                     </div>
                   </div>
 
                   {/* Endereço - Mostrar apenas se for entrega */}
-                  {formData.tipoEntrega === 'entrega' && (
-                    <div>
-                      <label 
-                        className="block font-body font-medium text-[#6D4C41] uppercase mb-1.5"
-                        style={{ fontSize: '11px', letterSpacing: '1.5px' }}
+                  <AnimatePresence mode="wait">
+                    {formData.tipoEntrega === 'entrega' && (
+                      <motion.div
+                        key="endereco"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-3"
                       >
-                        Endereço de Entrega *
-                      </label>
-                      <textarea
-                        required={formData.tipoEntrega === 'entrega'}
-                        value={formData.endereco}
-                        onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
-                        className="w-full bg-[#FAFAF8] text-[#3E2723] border border-[#E0DED9] px-4 py-2.5 font-body focus:border-gold-warm focus:outline-none h-24 resize-none transition-colors"
-                        style={{ borderRadius: '0px', fontSize: '14px' }}
-                        placeholder="Rua, número, complemento, bairro, cidade..."
-                      />
-                    </div>
-                  )}
+                      <div>
+                        <label 
+                          className="block font-body font-medium text-[#6D4C41] uppercase mb-1.5"
+                          style={{ fontSize: '11px', letterSpacing: '1.5px' }}
+                        >
+                          Endereço de Entrega *
+                        </label>
+                        <textarea
+                          required={formData.tipoEntrega === 'entrega'}
+                          value={formData.endereco}
+                          onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
+                          className="w-full bg-[#FAFAF8] text-[#3E2723] border border-[#E0DED9] px-4 py-2.5 font-body focus:border-gold-warm focus:outline-none h-24 resize-none transition-colors"
+                          style={{ borderRadius: '0px', fontSize: '14px' }}
+                          placeholder="Rua, número, complemento, bairro, cidade..."
+                        />
+                      </div>
+                      
+                      {/* Mensagem informativa sobre entrega */}
+                      <div className="p-4 bg-gradient-to-br from-[#2D5016]/10 via-[#4A7C2C]/15 to-[#2D5016]/10 border-2 border-[#4A7C2C] rounded-lg shadow-[#2D5016]/20 shadow-lg">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 mt-0.5">
+                            <Shield size={20} className="text-[#2D5016]" />
+                          </div>
+                          <div>
+                            <h4 className="font-body font-semibold text-[#2D5016] mb-1.5" style={{ fontSize: '13px' }}>
+                              Entrega Segura e Preservada
+                            </h4>
+                            <p className="font-body text-[#1a3a0d] leading-relaxed" style={{ fontSize: '12px', lineHeight: '1.6' }}>
+                              A entrega será realizada por carro para garantir maior segurança e preservação dos produtos durante o transporte, evitando qualquer dano causado por calor, chuva ou manuseio inadequado. Dessa forma, o pedido chega até você em perfeitas condições, mantendo a qualidade ThinkFit.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Data de Entrega/Retirada */}
                   <div>
