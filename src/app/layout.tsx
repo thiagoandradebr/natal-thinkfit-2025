@@ -43,6 +43,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+        <meta name="facebook-domain-verification" content="47b4k43jugi75zto6sagry6e5estnw" />
         <FacebookPixel />
       </head>
       <body>
