@@ -1,8 +1,10 @@
 'use client'
 
 import { createContext, useContext, useState, ReactNode, useEffect, useRef, useCallback } from 'react'
-import Toast, { ToastType } from './Toast'
-import Alert, { AlertType } from './Alert'
+import Toast from './Toast'
+import type { ToastType } from './Toast'
+import Alert from './Alert'
+import type { AlertType } from './Alert'
 import { setCartNotificationCallback } from '@/contexts/CartContext'
 
 export interface ToastContextType {
