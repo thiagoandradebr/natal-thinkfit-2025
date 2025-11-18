@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2, Search, Star, Package, ChevronUp, ChevronDown } fro
 import { supabase } from '@/lib/supabase'
 import { Produto } from '@/types/database'
 import Link from 'next/link'
+import SafeImage from '@/components/SafeImage'
 
 export default function ProdutosPage() {
   const [produtos, setProdutos] = useState<Produto[]>([])
@@ -244,8 +245,8 @@ export default function ProdutosPage() {
 
             {/* Image com overlay e lazy loading */}
             <div className="relative aspect-square bg-beige-lightest overflow-hidden">
-              <img
-                src={produto.fotos[0] || '/images/placeholder.jpg'}
+              <SafeImage
+                src={produto.fotos[0]}
                 alt={produto.nome}
                 loading="lazy"
                 decoding="async"

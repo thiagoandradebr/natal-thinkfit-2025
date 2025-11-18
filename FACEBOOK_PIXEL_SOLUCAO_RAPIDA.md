@@ -1,4 +1,4 @@
-# 🚨 Facebook Pixel - Solução Rápida
+esse picel # 🚨 Facebook Pixel - Solução Rápida
 
 ## ❌ Problema Atual
 O Meta Pixel Helper mostra: **"No pixel found"**

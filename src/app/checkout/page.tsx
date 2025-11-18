@@ -79,6 +79,8 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (cart.length > 0 && !loadingDraft) {
       const subtotal = getTotal()
+      
+      // Facebook Pixel
       trackEvent('InitiateCheckout', {
         value: subtotal,
         currency: 'BRL',
@@ -90,6 +92,24 @@ export default function CheckoutPage() {
           item_price: item.preco,
         })),
       })
+      
+      // Google Analytics
+      if (typeof window !== 'undefined' && window.gtag) {
+        try {
+          window.gtag('event', 'begin_checkout', {
+            currency: 'BRL',
+            value: subtotal,
+            items: cart.map(item => ({
+              item_id: item.produto_id,
+              item_name: item.nome,
+              quantity: item.quantidade,
+              price: item.preco,
+            })),
+          })
+        } catch (error) {
+          console.error('Erro ao rastrear begin_checkout no GA:', error)
+        }
+      }
     }
   }, [cart.length, loadingDraft, getTotal, trackEvent])
 
@@ -275,6 +295,25 @@ export default function CheckoutPage() {
         num_items: cart.reduce((sum, item) => sum + item.quantidade, 0),
         order_id: data.pedido_id,
       })
+      
+      // Rastrear evento purchase no Google Analytics
+      if (typeof window !== 'undefined' && window.gtag) {
+        try {
+          window.gtag('event', 'purchase', {
+            transaction_id: data.pedido_id,
+            value: totalFinal,
+            currency: 'BRL',
+            items: cart.map(item => ({
+              item_id: item.produto_id,
+              item_name: item.nome,
+              quantity: item.quantidade,
+              price: item.preco,
+            })),
+          })
+        } catch (error) {
+          console.error('Erro ao rastrear purchase no GA:', error)
+        }
+      }
       
       // Marcar pedido como confirmado ANTES de qualquer outra ação
       setPedidoConfirmado(true)

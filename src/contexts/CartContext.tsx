@@ -81,6 +81,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
     
+    // Rastrear evento add_to_cart no Google Analytics
+    if (typeof window !== 'undefined' && window.gtag) {
+      try {
+        window.gtag('event', 'add_to_cart', {
+          currency: 'BRL',
+          value: preco,
+          items: [{
+            item_id: produto.id,
+            item_name: produto.nome,
+            quantity: 1,
+            price: preco,
+          }],
+        })
+      } catch (error) {
+        console.error('Erro ao rastrear add_to_cart no GA:', error)
+      }
+    }
+    
     setCart((prevCart) => {
       // Buscar item existente (mesmo produto e mesma variação)
       const existingItem = prevCart.find((item) => 

@@ -10,6 +10,7 @@ import ProductModal from './ProductModal'
 import ProductVariantSelector from './ProductVariantSelector'
 import { getDefaultVariant } from '@/lib/variants'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import SafeImage from './SafeImage'
 
 interface ProductCardProps {
   produto: Produto
@@ -133,8 +134,8 @@ export default function ProductCard({ produto, index = 0, variants: propsVariant
           style={{ aspectRatio: '1/1' }}
           onClick={() => setShowModal(true)}
         >
-          <motion.img
-            src={produto.fotos[0] || '/images/placeholder.jpg'}
+          <SafeImage
+            src={produto.fotos[0]}
             alt={produto.nome}
             className="w-full h-full object-cover"
             style={{ 

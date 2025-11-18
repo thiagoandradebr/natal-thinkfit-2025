@@ -4,6 +4,7 @@ import { CartProvider } from '@/contexts/CartContext'
 import { ToastProvider } from '@/components/ToastProvider'
 import { AuthProvider } from '@/contexts/AuthContext'
 import FacebookPixel from '@/components/FacebookPixel'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://natal-thinkfit.vercel.app'),
@@ -45,6 +46,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
         <meta name="facebook-domain-verification" content="47b4k43jugi75zto6sagry6e5estnw" />
         <FacebookPixel />
+        <GoogleAnalytics />
       </head>
       <body>
         <AuthProvider>

@@ -7,6 +7,7 @@ import { Produto, VariacaoProduto } from '@/types/database'
 import { useCart } from '@/contexts/CartContext'
 import ProductVariantSelector from './ProductVariantSelector'
 import { getDefaultVariant } from '@/lib/variants'
+import SafeImage from './SafeImage'
 
 interface ProductModalProps {
   produto: Produto
@@ -126,12 +127,12 @@ export default function ProductModal({ produto, variants: propsVariants = [], on
             {/* Galeria de Imagens - Lado Esquerdo */}
             <div className="relative bg-beige-lightest p-12">
               <div className="relative aspect-square overflow-hidden bg-[#E8DCC8]">
-                <motion.img
+                <SafeImage
                   key={currentImageIndex}
                   initial={{ opacity: 0, scale: 1.1 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5 }}
-                  src={produto.fotos[currentImageIndex] || '/images/placeholder.jpg'}
+                  src={produto.fotos[currentImageIndex]}
                   alt={`${produto.nome} - Imagem ${currentImageIndex + 1}`}
                   className="w-full h-full object-cover"
                 />

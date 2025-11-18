@@ -6,6 +6,7 @@ import { useRef, useState, useEffect } from 'react'
 import { Produto } from '@/types/database'
 import { TextColor } from '@/components/ui/text-color'
 import { TextRotate } from '@/components/ui/text-rotate'
+import SafeImage from './SafeImage'
 
 interface HeroProps {
   titulo?: string
@@ -129,7 +130,7 @@ export default function Hero({
               <div className="aspect-square bg-[#E8DCC8] flex items-center justify-center mb-6 overflow-hidden relative group">
                 <AnimatePresence mode="wait">
                   {produtoAtual && produtoAtual.fotos && produtoAtual.fotos[0] ? (
-                    <motion.img
+                    <SafeImage
                       key={produtoAtual.id}
                       src={produtoAtual.fotos[0]}
                       alt={produtoAtual.nome}
