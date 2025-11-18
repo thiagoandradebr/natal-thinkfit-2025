@@ -62,10 +62,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [cart])
 
   const addToCart = useCallback((produto: Produto & { variacao_selecionada?: VariacaoProduto }) => {
+    const variacaoId = produto.variacao_selecionada?.id
+    const preco = produto.variacao_selecionada?.preco || produto.preco
+    
+    // Rastrear evento AddToCart no Facebook Pixel ANTES de atualizar o estado
+    // Isso garante que o evento seja disparado sempre que addToCart é chamado
+    if (typeof window !== 'undefined' && window.fbq) {
+      try {
+        window.fbq('track', 'AddToCart', {
+          content_name: produto.nome,
+          content_ids: [produto.id],
+          content_type: 'product',
+          value: preco,
+          currency: 'BRL',
+        })
+      } catch (error) {
+        console.error('Erro ao rastrear AddToCart:', error)
+      }
+    }
+    
     setCart((prevCart) => {
-      const variacaoId = produto.variacao_selecionada?.id
-      const preco = produto.variacao_selecionada?.preco || produto.preco
-      
       // Buscar item existente (mesmo produto e mesma variação)
       const existingItem = prevCart.find((item) => 
         item.produto_id === produto.id && 
@@ -90,21 +106,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const variacaoNome = produto.variacao_selecionada?.nome_variacao
           const nomeCompleto = variacaoNome ? `${produto.nome} (${variacaoNome})` : produto.nome
           notifyCallback(`${nomeCompleto} adicionado ao carrinho! 🎄`)
-        }
-        
-        // Rastrear evento AddToCart no Facebook Pixel
-        if (typeof window !== 'undefined' && window.fbq) {
-          try {
-            window.fbq('track', 'AddToCart', {
-              content_name: produto.nome,
-              content_ids: [produto.id],
-              content_type: 'product',
-              value: preco,
-              currency: 'BRL',
-            })
-          } catch (error) {
-            console.error('Erro ao rastrear AddToCart:', error)
-          }
         }
         
         return [
