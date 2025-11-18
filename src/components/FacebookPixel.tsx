@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import Script from 'next/script'
 
 declare global {
@@ -10,6 +9,7 @@ declare global {
       event: string,
       params?: Record<string, any>
     ) => void
+    _fbq?: any
   }
 }
 
@@ -20,27 +20,10 @@ interface FacebookPixelProps {
 export default function FacebookPixel({ pixelId }: FacebookPixelProps) {
   const pixelIdValue = pixelId || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID
 
-  useEffect(() => {
-    if (!pixelIdValue) {
-      console.warn('⚠️ [Facebook Pixel] Pixel ID não configurado!')
-      console.warn('Configure a variável NEXT_PUBLIC_FACEBOOK_PIXEL_ID no Vercel')
-      return
-    }
-
-    console.log('✅ [Facebook Pixel] Inicializando com ID:', pixelIdValue)
-
-    // Inicializar fbq se ainda não existir
-    if (typeof window !== 'undefined' && !window.fbq) {
-      window.fbq = function(...args: any[]) {
-        (window.fbq.q = window.fbq.q || []).push(args)
-      }
-      window.fbq.l = +new Date()
-    }
-  }, [pixelIdValue])
-
   if (!pixelIdValue) {
     if (process.env.NODE_ENV === 'development') {
-      console.error('❌ [Facebook Pixel] Pixel ID não encontrado. Variável NEXT_PUBLIC_FACEBOOK_PIXEL_ID não está configurada.')
+      console.warn('⚠️ [Facebook Pixel] Pixel ID não configurado!')
+      console.warn('Configure a variável NEXT_PUBLIC_FACEBOOK_PIXEL_ID no Vercel')
     }
     return null
   }
